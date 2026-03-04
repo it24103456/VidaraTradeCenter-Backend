@@ -9,7 +9,6 @@ public class AuthResponse {
     private String firstName;
     private String role;
 
-
     // CONSTRUCTORS
 
     public AuthResponse() {
@@ -22,7 +21,6 @@ public class AuthResponse {
         this.firstName = firstName;
         this.role = role;
     }
-
 
     // GETTERS AND SETTERS
 

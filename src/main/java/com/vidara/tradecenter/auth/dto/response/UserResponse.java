@@ -15,12 +15,10 @@ public class UserResponse {
     private Set<String> roles;
     private LocalDateTime createdAt;
 
-
     // CONSTRUCTORS
 
     public UserResponse() {
     }
-
 
     // GETTERS AND SETTERS
 

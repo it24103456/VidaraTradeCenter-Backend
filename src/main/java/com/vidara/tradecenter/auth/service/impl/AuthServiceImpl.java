@@ -30,117 +30,112 @@ import java.util.stream.Collectors;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+        private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
-    private final AuthMapper authMapper;
+        private final UserRepository userRepository;
+        private final RoleRepository roleRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtTokenProvider jwtTokenProvider;
+        private final AuthenticationManager authenticationManager;
+        private final AuthMapper authMapper;
 
-    public AuthServiceImpl(UserRepository userRepository,
-                           RoleRepository roleRepository,
-                           PasswordEncoder passwordEncoder,
-                           JwtTokenProvider jwtTokenProvider,
-                           AuthenticationManager authenticationManager,
-                           AuthMapper authMapper) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.authenticationManager = authenticationManager;
-        this.authMapper = authMapper;
-    }
-
-
-    // REGISTER
-
-    @Override
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("User", "email", request.getEmail());
+        public AuthServiceImpl(UserRepository userRepository,
+                        RoleRepository roleRepository,
+                        PasswordEncoder passwordEncoder,
+                        JwtTokenProvider jwtTokenProvider,
+                        AuthenticationManager authenticationManager,
+                        AuthMapper authMapper) {
+                this.userRepository = userRepository;
+                this.roleRepository = roleRepository;
+                this.passwordEncoder = passwordEncoder;
+                this.jwtTokenProvider = jwtTokenProvider;
+                this.authenticationManager = authenticationManager;
+                this.authMapper = authMapper;
         }
 
-        // Map RegisterRequest → User entity
-        User user = authMapper.toUser(request);
+        // REGISTER
 
-        // Encode password
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        @Override
+        @Transactional
+        public AuthResponse register(RegisterRequest request) {
+                // Check if email already exists
+                if (userRepository.existsByEmail(request.getEmail())) {
+                        throw new DuplicateResourceException("User", "email", request.getEmail());
+                }
 
-        // Assign default role (CUSTOMER)
-        Role customerRole = roleRepository.findByName(UserRole.CUSTOMER)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", UserRole.CUSTOMER));
-        user.addRole(customerRole);
+                // Map RegisterRequest → User entity
+                User user = authMapper.toUser(request);
 
-        // Save user
-        User savedUser = userRepository.save(user);
-        logger.info("User registered successfully: {}", savedUser.getEmail());
+                // Encode password
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Generate JWT token
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-        String token = jwtTokenProvider.generateToken(authentication);
+                // Assign default role (CUSTOMER)
+                Role customerRole = roleRepository.findByName(UserRole.CUSTOMER)
+                                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", UserRole.CUSTOMER));
+                user.addRole(customerRole);
 
-        // Map to AuthResponse
-        return authMapper.toAuthResponse(savedUser, token);
-    }
+                // Save user
+                User savedUser = userRepository.save(user);
+                logger.info("User registered successfully: {}", savedUser.getEmail());
 
+                // Generate JWT token
+                Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                String token = jwtTokenProvider.generateToken(authentication);
 
-    // LOGIN
-
-    @Override
-    public AuthResponse login(LoginRequest request) {
-        // Authenticate with Spring Security
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-        } catch (BadCredentialsException ex) {
-            throw new UnauthorizedException("Invalid email or password");
+                // Map to AuthResponse
+                return authMapper.toAuthResponse(savedUser, token);
         }
 
-        // Generate JWT token
-        String token = jwtTokenProvider.generateToken(authentication);
+        // LOGIN
 
-        // Get user from database
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
+        @Override
+        public AuthResponse login(LoginRequest request) {
+                // Authenticate with Spring Security
+                Authentication authentication;
+                try {
+                        authentication = authenticationManager.authenticate(
+                                        new UsernamePasswordAuthenticationToken(request.getEmail(),
+                                                        request.getPassword()));
+                } catch (BadCredentialsException ex) {
+                        throw new UnauthorizedException("Invalid email or password");
+                }
 
-        logger.info("User logged in successfully: {}", user.getEmail());
+                // Generate JWT token
+                String token = jwtTokenProvider.generateToken(authentication);
 
-        // Map to AuthResponse
-        return authMapper.toAuthResponse(user, token);
-    }
+                // Get user from database
+                User user = userRepository.findByEmail(request.getEmail())
+                                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
 
+                logger.info("User logged in successfully: {}", user.getEmail());
 
-    // GET CURRENT USER
+                // Map to AuthResponse
+                return authMapper.toAuthResponse(user, token);
+        }
 
-    @Override
-    public UserResponse getCurrentUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        // GET CURRENT USER
 
-        // Map User → UserResponse
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setEmail(user.getEmail());
-        response.setPhone(user.getPhone());
-        response.setProfilePicture(user.getProfilePicture());
-        response.setStatus(user.getStatus().name());
-        response.setRoles(
-                user.getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .collect(Collectors.toSet())
-        );
-        response.setCreatedAt(user.getCreatedAt());
+        @Override
+        public UserResponse getCurrentUser(Long userId) {
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        return response;
-    }
+                // Map User → UserResponse
+                UserResponse response = new UserResponse();
+                response.setId(user.getId());
+                response.setFirstName(user.getFirstName());
+                response.setLastName(user.getLastName());
+                response.setEmail(user.getEmail());
+                response.setPhone(user.getPhone());
+                response.setProfilePicture(user.getProfilePicture());
+                response.setStatus(user.getStatus().name());
+                response.setRoles(
+                                user.getRoles().stream()
+                                                .map(role -> role.getName().name())
+                                                .collect(Collectors.toSet()));
+                response.setCreatedAt(user.getCreatedAt());
+
+                return response;
+        }
 }

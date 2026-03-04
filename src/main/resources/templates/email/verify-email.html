@@ -1,141 +1,312 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verify Your Email</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #eef2f7; font-family: 'Segoe UI', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #eef2f7;
+      font-family: &quot;Segoe UI&quot;, Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="background-color: #eef2f7; padding: 50px 20px"
+    >
+      <tr>
+        <td align="center">
+          <!-- Main Container -->
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+            style="
+              background-color: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <!-- Header with gradient -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  padding: 40px 30px;
+                  text-align: center;
+                "
+              >
+                <p
+                  style="
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 13px;
+                    text-transform: uppercase;
+                    letter-spacing: 3px;
+                    margin: 0 0 10px 0;
+                    font-weight: 600;
+                  "
+                >
+                  Vidara Trade Center
+                </p>
+                <h1
+                  style="
+                    color: #ffffff;
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 700;
+                  "
+                >
+                  Verify Your Email
+                </h1>
+              </td>
+            </tr>
 
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eef2f7; padding: 50px 20px;">
-        <tr>
-            <td align="center">
-
-                <!-- Main Container -->
-                <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-
-                    <!-- Header with gradient -->
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-                            <p style="color: rgba(255,255,255,0.85); font-size: 13px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 10px 0; font-weight: 600;">Vidara Trade Center</p>
-                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Verify Your Email</h1>
-                        </td>
-                    </tr>
-
-                    <!-- Icon -->
-                    <tr>
-                        <td style="text-align: center; padding: 35px 30px 0 30px;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
-                                <tr>
-                                    <td style="width: 80px; height: 80px; border-radius: 50%; background-color: #f0ebff; text-align: center; vertical-align: middle; font-size: 36px;">
-                                        &#9993;&#65039;
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Body -->
-                    <tr>
-                        <td style="padding: 25px 40px 10px 40px;">
-                            <p style="color: #2d3748; font-size: 18px; font-weight: 600; line-height: 1.5; margin: 0 0 12px 0; text-align: center;">
-                                Hi <span th:text="${userName}" style="color: #667eea;">User</span>, you're almost there!
-                            </p>
-
-                            <p style="color: #718096; font-size: 15px; line-height: 1.7; margin: 0 0 8px 0; text-align: center;">
-                                We just need to make sure this email address belongs to you. Click the button below to confirm and activate your account.
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- CTA Button -->
-                    <tr>
-                        <td style="padding: 28px 40px 28px 40px; text-align: center;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
-                                <tr>
-                                    <td style="border-radius: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 14px rgba(102,126,234,0.4);">
-                                        <a th:href="${verificationLink}" style="display: inline-block; padding: 16px 48px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">
-                                            &#10003;  Verify My Email
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Fallback link -->
-                    <tr>
-                        <td style="padding: 0 40px 10px 40px; text-align: center;">
-                            <p style="color: #a0aec0; font-size: 13px; line-height: 1.6; margin: 0 0 10px 0;">
-                                Button not working? Copy and paste this link into your browser:
-                            </p>
-                            <p style="background-color: #f7f8fc; padding: 14px 18px; border-radius: 10px; word-break: break-all; margin: 0;">
-                                <a th:href="${verificationLink}" th:text="${verificationLink}" style="color: #667eea; font-size: 13px; text-decoration: none;">
-                                    https://example.com/verify
-                                </a>
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- Expiry notice -->
-                    <tr>
-                        <td style="padding: 24px 40px 0 40px; text-align: center;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
-                                <tr>
-                                    <td style="background-color: #fff8e1; border-radius: 10px; padding: 14px 22px;">
-                                        <p style="color: #b7791f; font-size: 13px; margin: 0; font-weight: 600;">
-                                            &#9200;  This link expires in 24 hours
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Safety note -->
-                    <tr>
-                        <td style="padding: 20px 40px 35px 40px; text-align: center;">
-                            <p style="color: #cbd5e0; font-size: 13px; line-height: 1.6; margin: 0;">
-                                If you didn't create an account with Vidara Trade Center, you can safely ignore this email &mdash; no action is needed.
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- Divider -->
-                    <tr>
-                        <td style="padding: 0 40px;">
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                                <tr><td style="border-top: 1px solid #e2e8f0;"></td></tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Footer -->
-                    <tr>
-                        <td style="padding: 25px 40px 30px 40px; text-align: center;">
-                            <p style="color: #cbd5e0; font-size: 12px; margin: 0 0 6px 0;">
-                                &copy; 2026 Vidara Trade Center &middot; All rights reserved
-                            </p>
-                            <p style="color: #cbd5e0; font-size: 11px; margin: 0;">
-                                This is a one-time verification email. You won't receive this again.
-                            </p>
-                        </td>
-                    </tr>
-
+            <!-- Icon -->
+            <tr>
+              <td style="text-align: center; padding: 35px 30px 0 30px">
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  style="margin: 0 auto"
+                >
+                  <tr>
+                    <td
+                      style="
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        background-color: #f0ebff;
+                        text-align: center;
+                        vertical-align: middle;
+                        font-size: 36px;
+                      "
+                    >
+                      &#9993;&#65039;
+                    </td>
+                  </tr>
                 </table>
+              </td>
+            </tr>
 
-                <!-- Below-card -->
-                <table role="presentation" width="600" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <td style="padding: 24px 30px; text-align: center;">
-                            <p style="color: #a0aec0; font-size: 12px; margin: 0;">Made with &#10084;&#65039; in Sri Lanka</p>
-                        </td>
-                    </tr>
+            <!-- Body -->
+            <tr>
+              <td style="padding: 25px 40px 10px 40px">
+                <p
+                  style="
+                    color: #2d3748;
+                    font-size: 18px;
+                    font-weight: 600;
+                    line-height: 1.5;
+                    margin: 0 0 12px 0;
+                    text-align: center;
+                  "
+                >
+                  Hi
+                  <span th:text="${userName}" style="color: #667eea">User</span
+                  >, you're almost there!
+                </p>
+
+                <p
+                  style="
+                    color: #718096;
+                    font-size: 15px;
+                    line-height: 1.7;
+                    margin: 0 0 8px 0;
+                    text-align: center;
+                  "
+                >
+                  We just need to make sure this email address belongs to you.
+                  Click the button below to confirm and activate your account.
+                </p>
+              </td>
+            </tr>
+
+            <!-- CTA Button -->
+            <tr>
+              <td style="padding: 28px 40px 28px 40px; text-align: center">
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  style="margin: 0 auto"
+                >
+                  <tr>
+                    <td
+                      style="
+                        border-radius: 50px;
+                        background: linear-gradient(
+                          135deg,
+                          #667eea 0%,
+                          #764ba2 100%
+                        );
+                        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+                      "
+                    >
+                      <a
+                        th:href="${verificationLink}"
+                        style="
+                          display: inline-block;
+                          padding: 16px 48px;
+                          color: #ffffff;
+                          text-decoration: none;
+                          font-size: 16px;
+                          font-weight: 700;
+                          letter-spacing: 0.5px;
+                        "
+                      >
+                        &#10003; Verify My Email
+                      </a>
+                    </td>
+                  </tr>
                 </table>
+              </td>
+            </tr>
 
-            </td>
-        </tr>
+            <!-- Fallback link -->
+            <tr>
+              <td style="padding: 0 40px 10px 40px; text-align: center">
+                <p
+                  style="
+                    color: #a0aec0;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    margin: 0 0 10px 0;
+                  "
+                >
+                  Button not working? Copy and paste this link into your
+                  browser:
+                </p>
+                <p
+                  style="
+                    background-color: #f7f8fc;
+                    padding: 14px 18px;
+                    border-radius: 10px;
+                    word-break: break-all;
+                    margin: 0;
+                  "
+                >
+                  <a
+                    th:href="${verificationLink}"
+                    th:text="${verificationLink}"
+                    style="
+                      color: #667eea;
+                      font-size: 13px;
+                      text-decoration: none;
+                    "
+                  >
+                    https://example.com/verify
+                  </a>
+                </p>
+              </td>
+            </tr>
+
+            <!-- Expiry notice -->
+            <tr>
+              <td style="padding: 24px 40px 0 40px; text-align: center">
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  style="margin: 0 auto"
+                >
+                  <tr>
+                    <td
+                      style="
+                        background-color: #fff8e1;
+                        border-radius: 10px;
+                        padding: 14px 22px;
+                      "
+                    >
+                      <p
+                        style="
+                          color: #b7791f;
+                          font-size: 13px;
+                          margin: 0;
+                          font-weight: 600;
+                        "
+                      >
+                        &#9200; This link expires in 24 hours
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Safety note -->
+            <tr>
+              <td style="padding: 20px 40px 35px 40px; text-align: center">
+                <p
+                  style="
+                    color: #cbd5e0;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    margin: 0;
+                  "
+                >
+                  If you didn't create an account with Vidara Trade Center, you
+                  can safely ignore this email &mdash; no action is needed.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Divider -->
+            <tr>
+              <td style="padding: 0 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td style="border-top: 1px solid #e2e8f0"></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 25px 40px 30px 40px; text-align: center">
+                <p style="color: #cbd5e0; font-size: 12px; margin: 0 0 6px 0">
+                  &copy; 2026 Vidara Trade Center &middot; All rights reserved
+                </p>
+                <p style="color: #cbd5e0; font-size: 11px; margin: 0">
+                  This is a one-time verification email. You won't receive this
+                  again.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Below-card -->
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+          >
+            <tr>
+              <td style="padding: 24px 30px; text-align: center">
+                <p style="color: #a0aec0; font-size: 12px; margin: 0">
+                  Made with &#10084;&#65039; in Sri Lanka
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
     </table>
-
-</body>
+  </body>
 </html>
