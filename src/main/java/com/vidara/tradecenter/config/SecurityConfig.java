@@ -119,7 +119,7 @@ public class SecurityConfig {
                         // ======== ADMIN ENDPOINTS ==========
 
                         // Admin dashboard (requires ADMIN role)
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")// temp for testing //permitAll()
 
                         // Admin API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")

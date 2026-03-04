@@ -19,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
     //
     // Example:
     //   File saved at: uploads/products/abc123.jpg
-    //   Accessible at: http://localhost:8080/uploads/products/abc123.jpg
+    //   Accessible at: http://localhost:8081/uploads/products/abc123.jpg
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
