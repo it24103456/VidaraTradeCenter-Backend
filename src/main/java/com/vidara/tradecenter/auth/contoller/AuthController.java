@@ -23,7 +23,6 @@ public class AuthController {
         this.authService = authService;
     }
 
-
     // REGISTER
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
@@ -33,7 +32,6 @@ public class AuthController {
                 .body(ApiResponse.success("User registered successfully", authResponse));
     }
 
-
     // LOGIN
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -41,7 +39,6 @@ public class AuthController {
         return ResponseEntity
                 .ok(ApiResponse.success("Login successful", authResponse));
     }
-
 
     // GET CURRENT USER
     @GetMapping("/me")

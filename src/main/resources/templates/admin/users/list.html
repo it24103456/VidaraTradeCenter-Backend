@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Vidara Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-size: 0.9rem; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .navbar-brand { font-weight: 600; font-size: 1.25rem; }
+        .sidebar { position: fixed; top: 56px; bottom: 0; left: 0; width: var(--sidebar-width); background-color: #ffffff; border-right: 1px solid #e3e6f0; overflow-y: auto; padding-top: 1.5rem; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .sidebar-heading { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; color: #858796; }
+        .sidebar .nav-link { color: #3a3b45; padding: 0.75rem 1.25rem; margin: 0.2rem 0.5rem; border-radius: 0.35rem; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .sidebar .nav-link:hover { background-color: #eaecf4; color: #4e73df; border-left-color: #4e73df; }
+        .sidebar .nav-link.active { background-color: #e7f1ff; color: #4e73df; border-left-color: #4e73df; font-weight: 600; }
+        .sidebar .nav-link i { margin-right: 0.75rem; width: 20px; text-align: center; color: #858796; }
+        .sidebar .nav-link.active i, .sidebar .nav-link:hover i { color: #4e73df; }
+        .main-content { margin-left: var(--sidebar-width); padding: 2rem; padding-top: 80px; min-height: calc(100vh - 56px); }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e3e6f0; }
+        .page-header h1 { font-size: 1.75rem; color: #5a5c69; font-weight: 600; }
+        .stat-card { border: none; border-radius: 0.5rem; border-left: 4px solid; transition: all 0.3s ease; height: 100%; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .stat-card.primary { border-left-color: #4e73df; }
+        .stat-card.success { border-left-color: #1cc88a; }
+        .stat-card.warning { border-left-color: #f6c23e; }
+        .stat-card.danger { border-left-color: #e74a3b; }
+        .stat-card .text-xs { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-icon { font-size: 2rem; opacity: 0.15; }
+        .card { border: none; border-radius: 0.5rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.1); }
+        .card-header { border-bottom: 1px solid #e3e6f0; font-weight: 600; }
+        .table { color: #5a5c69; }
+        .table thead th { border-bottom: 2px solid #e3e6f0; font-weight: 600; color: #6e707e; font-size: 0.8rem; text-transform: uppercase; }
+        .table tbody tr:hover { background-color: #f8f9fc; }
+        .btn { border-radius: 0.35rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background-color: #4e73df; border-color: #4e73df; }
+        .btn-primary:hover { background-color: #2e59d9; border-color: #2e59d9; }
+        .badge { padding: 0.35rem 0.65rem; font-weight: 600; font-size: 0.7rem; }
+        .filter-bar { background-color: #ffffff; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.1); }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #e3e6f0; }
+        .user-avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background-color: #4e73df; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 600; font-size: 0.8rem; }
+        .status-dropdown .dropdown-item { font-size: 0.85rem; padding: 0.4rem 1rem; }
+        .status-dropdown .dropdown-item i { width: 16px; margin-right: 0.5rem; }
+        @media (max-width: 768px) { .sidebar { width: 100%; position: relative; top: 0; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-store"></i> Vidara Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> Admin
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">CATALOG</h6></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/products}"><i class="fas fa-box"></i> Products</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/categories}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-copyright"></i> Brands</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">SALES</h6></li>
+        <li class="nav-item"><a class="nav-link disabled" href="#"><i class="fas fa-shopping-cart"></i> Orders <span class="badge bg-secondary">Soon</span></a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">USERS</h6></li>
+        <li class="nav-item"><a class="nav-link active" th:href="@{/admin/users}"><i class="fas fa-users"></i> Customers</a></li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-users me-2"></i> User Management</h1>
+        <span class="text-muted" th:text="'Total: ' + ${totalElements} + ' users'">Total: 0 users</span>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card primary">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-primary mb-1">Total Users</div>
+                            <div class="h4 mb-0 fw-bold" th:text="${totalUsers ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users stat-icon text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card success">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-success mb-1">Active</div>
+                            <div class="h4 mb-0 fw-bold" th:text="${activeUsers ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check stat-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card warning">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-warning mb-1">Inactive</div>
+                            <div class="h4 mb-0 fw-bold" th:text="${inactiveUsers ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-clock stat-icon text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card danger">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-danger mb-1">Banned</div>
+                            <div class="h4 mb-0 fw-bold" th:text="${bannedUsers ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-slash stat-icon text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form class="row g-3 align-items-center" method="get" th:action="@{/admin/users}">
+            <div class="col-md-3">
+                <input type="text" class="form-control form-control-sm" name="search"
+                       placeholder="Search by name or email..." th:value="${search}">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" name="status">
+                    <option value="">All Status</option>
+                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active</option>
+                    <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Inactive</option>
+                    <option value="BANNED" th:selected="${status == 'BANNED'}">Banned</option>
+                    <option value="PENDING" th:selected="${status == 'PENDING'}">Pending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" name="sortBy">
+                    <option value="createdAt" th:selected="${sortBy == 'createdAt'}">Newest First</option>
+                    <option value="firstName" th:selected="${sortBy == 'firstName'}">Name A-Z</option>
+                    <option value="email" th:selected="${sortBy == 'email'}">Email</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+                <a th:href="@{/admin/users}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-redo"></i> Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="usersTable" class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${users == null or users.isEmpty()}">
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No users found</p>
+                        </td>
+                    </tr>
+                    <tr th:each="user, iter : ${users}">
+                        <!-- # -->
+                        <td th:text="${currentPage * pageSize + iter.index + 1}">1</td>
+
+                        <!-- User (Avatar + Name) -->
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img th:if="${user.profilePicture != null}"
+                                     th:src="${user.profilePicture}"
+                                     class="user-avatar me-2" alt="Avatar">
+                                <div th:if="${user.profilePicture == null}" class="user-avatar-placeholder me-2">
+                                    <span th:text="${user.firstName.substring(0,1) + user.lastName.substring(0,1)}">JD</span>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" th:text="${user.fullName}">John Doe</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Email -->
+                        <td th:text="${user.email}">john@example.com</td>
+
+                        <!-- Phone -->
+                        <td>
+                            <span th:if="${user.phone != null}" th:text="${user.phone}">N/A</span>
+                            <span th:if="${user.phone == null}" class="text-muted">N/A</span>
+                        </td>
+
+                        <!-- Role -->
+                        <td>
+                            <span th:each="role : ${user.roles}"
+                                  class="badge me-1"
+                                  th:classappend="${role.name.name() == 'ADMIN'} ? 'bg-danger' : (${role.name.name() == 'AGENT'} ? 'bg-info' : 'bg-primary')"
+                                  th:text="${role.name.name()}">CUSTOMER</span>
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            <span class="badge"
+                                  th:id="'status-badge-' + ${user.id}"
+                                  th:classappend="${user.status.name() == 'ACTIVE'} ? 'bg-success' : (${user.status.name() == 'BANNED'} ? 'bg-danger' : (${user.status.name() == 'INACTIVE'} ? 'bg-secondary' : 'bg-warning'))"
+                                  th:text="${user.status.name()}">ACTIVE</span>
+                        </td>
+
+                        <!-- Joined Date -->
+                        <td th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'MMM dd, yyyy')} : 'N/A'">Jan 01, 2024</td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="dropdown status-dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item text-success" href="javascript:void(0)"
+                                           th:onclick="'updateStatus(' + ${user.id} + ', \'ACTIVE\')'">
+                                            <i class="fas fa-check-circle"></i> Set Active
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-secondary" href="javascript:void(0)"
+                                           th:onclick="'updateStatus(' + ${user.id} + ', \'INACTIVE\')'">
+                                            <i class="fas fa-pause-circle"></i> Set Inactive
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                           th:onclick="'updateStatus(' + ${user.id} + ', \'BANNED\')'">
+                                            <i class="fas fa-ban"></i> Ban User
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1}, search=${search}, status=${status}, sortBy=${sortBy}, direction=${direction})}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/users(page=${i}, search=${search}, status=${status}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1}, search=${search}, status=${status}, sortBy=${sortBy}, direction=${direction})}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery + DataTables -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    // Initialize DataTables (client-side sorting on current page)
+    $(document).ready(function () {
+        if ($('#usersTable tbody tr').length > 1 || !$('#usersTable tbody tr td[colspan]').length) {
+            $('#usersTable').DataTable({
+                paging: false,       // We handle pagination server-side
+                searching: false,    // We handle search server-side
+                info: false,
+                ordering: true,
+                order: [],
+                columnDefs: [
+                    { orderable: false, targets: [0, 7] }  // Disable sorting on # and Actions
+                ]
+            });
+        }
+    });
+
+    // Update user status via AJAX
+    function updateStatus(userId, newStatus) {
+        var statusLabel = newStatus.charAt(0) + newStatus.slice(1).toLowerCase();
+        if (!confirm('Are you sure you want to set this user as ' + statusLabel + '?')) {
+            return;
+        }
+
+        fetch('/admin/users/' + userId + '/status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'status=' + newStatus
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                // Update the badge in the table
+                var badge = document.getElementById('status-badge-' + userId);
+                if (badge) {
+                    badge.className = 'badge';
+                    badge.textContent = data.newStatus;
+
+                    if (data.newStatus === 'ACTIVE') {
+                        badge.classList.add('bg-success');
+                    } else if (data.newStatus === 'BANNED') {
+                        badge.classList.add('bg-danger');
+                    } else if (data.newStatus === 'INACTIVE') {
+                        badge.classList.add('bg-secondary');
+                    } else {
+                        badge.classList.add('bg-warning');
+                    }
+                }
+                showAlert('success', data.message);
+            } else {
+                showAlert('danger', data.message || 'Failed to update status');
+            }
+        })
+        .catch(function(error) {
+            showAlert('danger', 'An error occurred. Please try again.');
+            console.error('Error:', error);
+        });
+    }
+
+    // Show alert message
+    function showAlert(type, message) {
+        var icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+        var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+            '<i class="fas fa-' + icon + '"></i> ' + message +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+
+        // Insert after page header
+        var pageHeader = document.querySelector('.page-header');
+        if (pageHeader) {
+            pageHeader.insertAdjacentHTML('afterend', alertHtml);
+        }
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.classList.remove('show');
+                setTimeout(function() { alert.remove(); }, 150);
+            });
+        }, 3000);
+    }
+</script>
+</body>
+</html>

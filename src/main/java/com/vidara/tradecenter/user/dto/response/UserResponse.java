@@ -1,4 +1,4 @@
-package com.vidara.tradecenter.auth.dto.response;
+package com.vidara.tradecenter.user.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -11,14 +11,16 @@ public class UserResponse {
     private String email;
     private String phone;
     private String profilePicture;
+    private String role;
     private String status;
-    private Set<String> roles;
     private LocalDateTime createdAt;
+
 
     // CONSTRUCTORS
 
     public UserResponse() {
     }
+
 
     // GETTERS AND SETTERS
 
@@ -70,20 +72,20 @@ public class UserResponse {
         this.profilePicture = profilePicture;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Set<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
     }
 
     public LocalDateTime getCreatedAt() {

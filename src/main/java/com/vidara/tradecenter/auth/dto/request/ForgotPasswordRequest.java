@@ -9,7 +9,6 @@ public class ForgotPasswordRequest {
     @Email(message = "Please provide a valid email address")
     private String email;
 
-
     // CONSTRUCTORS
 
     public ForgotPasswordRequest() {
@@ -18,7 +17,6 @@ public class ForgotPasswordRequest {
     public ForgotPasswordRequest(String email) {
         this.email = email;
     }
-
 
     // GETTERS AND SETTERS
 
