@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Product - Vidara Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-size: 0.9rem; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .navbar-brand { font-weight: 600; font-size: 1.25rem; }
+        .sidebar { position: fixed; top: 56px; bottom: 0; left: 0; width: var(--sidebar-width); background-color: #ffffff; border-right: 1px solid #e3e6f0; overflow-y: auto; padding-top: 1.5rem; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .sidebar-heading { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; color: #858796; }
+        .sidebar .nav-link { color: #3a3b45; padding: 0.75rem 1.25rem; margin: 0.2rem 0.5rem; border-radius: 0.35rem; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .sidebar .nav-link:hover { background-color: #eaecf4; color: #4e73df; border-left-color: #4e73df; }
+        .sidebar .nav-link.active { background-color: #e7f1ff; color: #4e73df; border-left-color: #4e73df; font-weight: 600; }
+        .sidebar .nav-link i { margin-right: 0.75rem; width: 20px; text-align: center; color: #858796; }
+        .sidebar .nav-link.active i, .sidebar .nav-link:hover i { color: #4e73df; }
+        .main-content { margin-left: var(--sidebar-width); padding: 2rem; padding-top: 80px; min-height: calc(100vh - 56px); }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e3e6f0; }
+        .page-header h1 { font-size: 1.75rem; color: #5a5c69; font-weight: 600; }
+        .card { border: none; border-radius: 0.5rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.1); }
+        .form-label { font-weight: 600; color: #495057; margin-bottom: 0.3rem; }
+        .form-control:focus, .form-select:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.25); }
+        .btn { border-radius: 0.35rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background-color: #4e73df; border-color: #4e73df; }
+        .btn-primary:hover { background-color: #2e59d9; border-color: #2e59d9; }
+        .required-star { color: #e74a3b; }
+        .section-title { font-size: 1rem; font-weight: 600; color: #4e73df; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e3e6f0; }
+        .image-preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .image-preview-item { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #e3e6f0; }
+        @media (max-width: 768px) { .sidebar { width: 100%; position: relative; top: 0; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-store"></i> Vidara Admin</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-user-circle"></i> Admin</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">CATALOG</h6></li>
+        <li class="nav-item"><a class="nav-link active" th:href="@{/admin/products}"><i class="fas fa-box"></i> Products</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/categories}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-copyright"></i> Brands</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">SALES</h6></li>
+        <li class="nav-item"><a class="nav-link disabled" href="#"><i class="fas fa-shopping-cart"></i> Orders <span class="badge bg-secondary">Soon</span></a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">USERS</h6></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i> Customers</a></li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-plus-circle me-2"></i> Create Product</h1>
+        <a th:href="@{/admin/products}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Products
+        </a>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Create Form -->
+    <form th:action="@{/admin/products/create}" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <!-- Left Column - Main Details -->
+            <div class="col-lg-8">
+                <!-- Basic Information -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="fas fa-info-circle me-2"></i> Basic Information</h5>
+
+                        <!-- Product Name -->
+                        <div class="mb-3">
+                            <label class="form-label">Product Name <span class="required-star">*</span></label>
+                            <input type="text" class="form-control" name="name"
+                                   placeholder="Enter product name" required maxlength="200">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label class="form-label">Description <span class="required-star">*</span></label>
+                            <textarea class="form-control" name="description" rows="4"
+                                      placeholder="Detailed product description" required></textarea>
+                        </div>
+
+                        <!-- SKU -->
+                        <div class="mb-3">
+                            <label class="form-label">SKU (Stock Keeping Unit) <span class="required-star">*</span></label>
+                            <input type="text" class="form-control" name="sku"
+                                   placeholder="e.g., VTC-001" required maxlength="50">
+                            <div class="form-text">Must be unique for each product</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing & Stock -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="fas fa-dollar-sign me-2"></i> Pricing & Stock</h5>
+
+                        <div class="row">
+                            <!-- Base Price -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Base Price ($) <span class="required-star">*</span></label>
+                                <input type="number" class="form-control" name="basePrice"
+                                       placeholder="0.00" step="0.01" min="0" required>
+                            </div>
+
+                            <!-- Sale Price -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Sale Price ($)</label>
+                                <input type="number" class="form-control" name="salePrice"
+                                       placeholder="0.00" step="0.01" min="0">
+                                <div class="form-text">Leave empty if no sale</div>
+                            </div>
+
+                            <!-- Stock -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Stock Quantity <span class="required-star">*</span></label>
+                                <input type="number" class="form-control" name="stock"
+                                       placeholder="0" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Weight -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Weight (kg)</label>
+                                <input type="number" class="form-control" name="weight"
+                                       placeholder="0.00" step="0.01" min="0">
+                            </div>
+
+                            <!-- Dimensions -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dimensions</label>
+                                <input type="text" class="form-control" name="dimensions"
+                                       placeholder="e.g., 10cm x 5cm x 3cm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Images -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="fas fa-images me-2"></i> Product Images</h5>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label class="form-label">Upload Images</label>
+                            <input type="file" class="form-control" name="images"
+                                   accept="image/jpeg,image/png,image/webp" multiple
+                                   id="imageInput">
+                            <div class="form-text">Accepted: JPG, PNG, WebP. Max 5MB each. First image = primary.</div>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="imagePreview" class="image-preview-container"></div>
+
+                        <!-- OR Image URL -->
+                        <div class="mt-3">
+                            <label class="form-label">Or Enter Image URL</label>
+                            <input type="text" class="form-control" name="imageUrl"
+                                   placeholder="https://example.com/product-image.jpg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Organization -->
+            <div class="col-lg-4">
+                <!-- Category & Brand -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="fas fa-folder me-2"></i> Organization</h5>
+
+                        <!-- Category DROPDOWN -->
+                        <div class="mb-3">
+                            <label class="form-label">Category <span class="required-star">*</span></label>
+                            <select class="form-select" name="categoryId" required>
+                                <option value="" disabled selected>Select a category</option>
+                                <option th:each="category : ${categories}"
+                                        th:value="${category.id}"
+                                        th:text="${category.name}">Category Name</option>
+                            </select>
+                            <div class="form-text">
+                                <a th:href="@{/admin/categories/create}" class="text-decoration-none">
+                                    <i class="fas fa-plus-circle"></i> Create new category
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Brand DROPDOWN -->
+                        <div class="mb-3">
+                            <label class="form-label">Brand</label>
+                            <select class="form-select" name="brandId">
+                                <option value="">No Brand</option>
+                                <option th:each="brand : ${brands}"
+                                        th:value="${brand.id}"
+                                        th:text="${brand.name}">Brand Name</option>
+                            </select>
+                        </div>
+
+                        <!-- Status DROPDOWN -->
+                        <div class="mb-3">
+                            <label class="form-label">Status <span class="required-star">*</span></label>
+                            <select class="form-select" name="status" required>
+                                <option value="ACTIVE">Active</option>
+                                <option value="DRAFT" selected>Draft</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                            <div class="form-text">Draft products won't be visible to customers</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title"><i class="fas fa-tag me-2"></i> Tags</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Product Tags</label>
+                            <input type="text" class="form-control" name="tags"
+                                   placeholder="organic, natural, premium">
+                            <div class="form-text">Comma-separated tags for search</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Create Product
+                            </button>
+                            <a th:href="@{/admin/products}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Image Preview
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+
+        Array.from(e.target.files).forEach(function(file, index) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const container = document.createElement('div');
+                    container.style.position = 'relative';
+
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.classList.add('image-preview-item');
+                    container.appendChild(img);
+
+                    if (index === 0) {
+                        const badge = document.createElement('span');
+                        badge.classList.add('badge', 'bg-primary');
+                        badge.style.cssText = 'position:absolute;top:5px;left:5px;font-size:0.6rem;';
+                        badge.textContent = 'Primary';
+                        container.appendChild(badge);
+                    }
+
+                    preview.appendChild(container);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+</body>
+</html>

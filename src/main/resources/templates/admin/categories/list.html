@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - Vidara Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-size: 0.9rem; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .navbar-brand { font-weight: 600; font-size: 1.25rem; }
+        .sidebar { position: fixed; top: 56px; bottom: 0; left: 0; width: var(--sidebar-width); background-color: #ffffff; border-right: 1px solid #e3e6f0; overflow-y: auto; padding-top: 1.5rem; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .sidebar-heading { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; color: #858796; }
+        .sidebar .nav-link { color: #3a3b45; padding: 0.75rem 1.25rem; margin: 0.2rem 0.5rem; border-radius: 0.35rem; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .sidebar .nav-link:hover { background-color: #eaecf4; color: #4e73df; border-left-color: #4e73df; }
+        .sidebar .nav-link.active { background-color: #e7f1ff; color: #4e73df; border-left-color: #4e73df; font-weight: 600; }
+        .sidebar .nav-link i { margin-right: 0.75rem; width: 20px; text-align: center; color: #858796; }
+        .sidebar .nav-link.active i, .sidebar .nav-link:hover i { color: #4e73df; }
+        .main-content { margin-left: var(--sidebar-width); padding: 2rem; padding-top: 80px; min-height: calc(100vh - 56px); }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e3e6f0; }
+        .page-header h1 { font-size: 1.75rem; color: #5a5c69; font-weight: 600; }
+        .card { border: none; border-radius: 0.5rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.1); }
+        .card-header { border-bottom: 1px solid #e3e6f0; font-weight: 600; }
+        .table { color: #5a5c69; }
+        .table thead th { border-bottom: 2px solid #e3e6f0; font-weight: 600; color: #6e707e; font-size: 0.8rem; text-transform: uppercase; }
+        .table tbody tr:hover { background-color: #f8f9fc; }
+        .btn { border-radius: 0.35rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background-color: #4e73df; border-color: #4e73df; }
+        .btn-primary:hover { background-color: #2e59d9; border-color: #2e59d9; }
+        .badge { padding: 0.35rem 0.65rem; font-weight: 600; font-size: 0.7rem; }
+        @media (max-width: 768px) { .sidebar { width: 100%; position: relative; top: 0; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-store"></i> Vidara Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> Admin
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">CATALOG</h6></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/products}"><i class="fas fa-box"></i> Products</a></li>
+        <li class="nav-item"><a class="nav-link active" th:href="@{/admin/categories}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-copyright"></i> Brands</a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">SALES</h6></li>
+        <li class="nav-item"><a class="nav-link disabled" href="#"><i class="fas fa-shopping-cart"></i> Orders <span class="badge bg-secondary">Soon</span></a></li>
+        <li class="nav-item"><h6 class="sidebar-heading px-3 mt-3 mb-1">USERS</h6></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i> Customers</a></li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-tags me-2"></i> Categories</h1>
+        <a th:href="@{/admin/categories/create}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Category
+        </a>
+    </div>
+
+    <!-- Success Message -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Products</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${categories == null or categories.isEmpty()}">
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-3">No categories yet</p>
+                            <a th:href="@{/admin/categories/create}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Create First Category
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:each="category, iter : ${categories}">
+                        <td th:text="${iter.index + 1}">1</td>
+                        <td class="fw-bold" th:text="${category.name}">Category Name</td>
+                        <td>
+                            <span class="text-muted" th:text="${category.description != null} ? ${#strings.abbreviate(category.description, 50)} : 'No description'">Description</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary" th:text="${category.productCount ?: 0}">0</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                        <td th:text="${#temporals.format(category.createdAt, 'MMM dd, yyyy')}">Date</td>
+                        <td>
+                            <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                    th:onclick="'deleteCategory(' + ${category.id} + ')'">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function deleteCategory(id) {
+        if (confirm('Are you sure you want to delete this category?')) {
+            window.location.href = '/admin/categories/delete/' + id;
+        }
+    }
+</script>
+</body>
+</html>

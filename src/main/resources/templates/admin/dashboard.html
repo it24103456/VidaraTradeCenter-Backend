@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vidara Admin</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Embedded CSS -->
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+
+        body {
+            font-size: 0.9rem;
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            padding-top: 1.5rem;
+            bottom: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            background-color: #ffffff;
+            border-right: 1px solid #e3e6f0;
+            overflow-y: auto;
+            padding-top: 1rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-heading {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #858796;
+        }
+
+        .sidebar .nav-link {
+            color: #3a3b45;
+            padding: 0.75rem 1.25rem;
+            margin: 0.2rem 0.5rem;
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #eaecf4;
+            color: #4e73df;
+            border-left-color: #4e73df;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #e7f1ff;
+            color: #4e73df;
+            border-left-color: #4e73df;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            color: #858796;
+        }
+
+        .sidebar .nav-link.active i,
+        .sidebar .nav-link:hover i {
+            color: #4e73df;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            padding-top: 80px;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            color: #5a5c69;
+            font-weight: 600;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            border: none;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.primary {
+            border-left-color: #4e73df;
+        }
+
+        .stat-card.success {
+            border-left-color: #1cc88a;
+        }
+
+        .stat-card.warning {
+            border-left-color: #f6c23e;
+        }
+
+        .stat-card.danger {
+            border-left-color: #e74a3b;
+        }
+
+        .stat-card .text-xs {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.15;
+        }
+
+        /* Card */
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.1);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+            color: #4e73df;
+        }
+
+        /* Table */
+        .table {
+            color: #5a5c69;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #e3e6f0;
+            font-weight: 600;
+            color: #6e707e;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fc;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2e59d9;
+        }
+
+        .btn-success {
+            background-color: #1cc88a;
+            border-color: #1cc88a;
+        }
+
+        .btn-success:hover {
+            background-color: #17a673;
+            border-color: #17a673;
+        }
+
+        /* Badge */
+        .badge {
+            padding: 0.35rem 0.65rem;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">
+            <i class="fas fa-store"></i> Vidara Admin
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> Admin
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/admin/dashboard}">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <h6 class="sidebar-heading px-3 mt-3 mb-1">CATALOG</h6>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/products}">
+                <i class="fas fa-box"></i> Products
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/categories}">
+                <i class="fas fa-tags"></i> Categories
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-copyright"></i> Brands</a>
+        </li>
+
+        <li class="nav-item">
+            <h6 class="sidebar-heading px-3 mt-3 mb-1">SALES</h6>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link disabled" href="#"><i class="fas fa-shopping-cart"></i> Orders <span class="badge bg-secondary">Soon</span></a>
+        </li>
+
+        <li class="nav-item">
+            <h6 class="sidebar-heading px-3 mt-3 mb-1">USERS</h6>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/users}"><i class="fas fa-users"></i> Users</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-chart-line me-2"></i> Dashboard</h1>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-secondary"><i class="fas fa-calendar"></i> Today</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary"><i class="fas fa-calendar-week"></i> Week</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary"><i class="fas fa-calendar-alt"></i> Month</button>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-primary mb-1">Total Products</div>
+                            <div class="h3 mb-0 fw-bold" th:text="${totalProducts ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box stat-icon text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-success mb-1">Total Categories</div>
+                            <div class="h3 mb-0 fw-bold" th:text="${totalCategories ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tags stat-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-warning mb-1">Total Users</div>
+                            <div class="h3 mb-0 fw-bold" th:text="${totalUsers ?: 0}">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users stat-icon text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card danger">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs text-danger mb-1">Total Orders</div>
+                            <div class="h5 mb-0"><span class="badge bg-secondary">Coming Soon</span></div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart stat-icon text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card" style="border-left-color: #6f42c1;">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs mb-1" style="color: #6f42c1;">Revenue</div>
+                            <div class="h5 mb-0"><span class="badge bg-secondary">Coming Soon</span></div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign stat-icon" style="color: #6f42c1;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Placeholder -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0"><i class="fas fa-chart-area me-2"></i>Overview</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="dashboardChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0"><i class="fas fa-chart-pie me-2"></i>Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Quick Actions -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0">Recent Products</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${recentProducts == null or recentProducts.isEmpty()}">
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No products yet. Create your first product!</p>
+                                    <a th:href="@{/admin/products/create}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Add Product
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:each="product : ${recentProducts}">
+                                <td th:text="${product.name}">Product Name</td>
+                                <td th:text="${product.category?.name}">Category</td>
+                                <td th:text="'$' + ${product.basePrice}">$0.00</td>
+                                <td>
+                                            <span class="badge"
+                                                  th:classappend="${product.status == 'ACTIVE'} ? 'bg-success' : 'bg-secondary'"
+                                                  th:text="${product.status}">Active</span>
+                                </td>
+                                <td th:text="${#temporals.format(product.createdAt, 'MMM dd, yyyy')}">Date</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/admin/products/create}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Product
+                        </a>
+                        <a th:href="@{/admin/categories/create}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add New Category
+                        </a>
+                        <a th:href="@{/admin/products}" class="btn btn-outline-primary">
+                            <i class="fas fa-list"></i> View All Products
+                        </a>
+                        <a th:href="@{/admin/categories}" class="btn btn-outline-success">
+                            <i class="fas fa-list"></i> View All Categories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Area Chart - Overview (placeholder data)
+    const ctx = document.getElementById('dashboardChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Users',
+                data: [/*[[${totalUsers}]]*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#4e73df'
+            }, {
+                label: 'Orders (Coming Soon)',
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                borderColor: '#e74a3b',
+                backgroundColor: 'rgba(231, 74, 59, 0.05)',
+                fill: true,
+                tension: 0.3,
+                borderDash: [5, 5],
+                pointBackgroundColor: '#e74a3b'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Pie Chart - Distribution (placeholder data)
+    const ctx2 = document.getElementById('distributionChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Products', 'Categories', 'Users'],
+            datasets: [{
+                data: [
+                    /*[[${totalProducts}]]*/ 0,
+                    /*[[${totalCategories}]]*/ 0,
+                    /*[[${totalUsers}]]*/ 0
+                ],
+                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            cutout: '60%'
+        }
+    });
+</script>
+</body>
+</html>
