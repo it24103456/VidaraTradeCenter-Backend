@@ -46,6 +46,9 @@ public class Product extends BaseEntity {
     @Column(name = "dimensions", length = 100)
     private String dimensions;
 
+    @Column(name = "stock")
+    private Integer stock = 0;
+
 
     // RELATIONSHIPS
 
@@ -193,9 +196,13 @@ public class Product extends BaseEntity {
         return dimensions;
     }
 
+    public Integer getStock() { return stock; }
+
     public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
     }
+
+    public void setStock(Integer stock) { this.stock = stock; }
 
     public Category getCategory() {
         return category;
