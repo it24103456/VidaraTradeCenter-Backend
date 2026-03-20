@@ -30,6 +30,19 @@ public class AdminOrderController {
 
     private final AdminOrderService adminOrderService;
 
+    // Map Java field names to database column names
+    private static final Map<String, String> SORT_FIELD_MAP = Map.of(
+            "orderDate", "order_date",
+            "totalAmount", "total_amount",
+            "orderStatus", "order_status",
+            "paymentStatus", "payment_status",
+            "orderNumber", "order_number",
+            "subtotal", "subtotal",
+            "shippingCost", "shipping_cost",
+            "createdAt", "created_at",
+            "id", "id"
+    );
+
     public AdminOrderController(AdminOrderService adminOrderService) {
         this.adminOrderService = adminOrderService;
     }
@@ -53,9 +66,12 @@ public class AdminOrderController {
             size = 100;
         }
 
+        // Convert Java field name to database column name
+        String dbColumn = SORT_FIELD_MAP.getOrDefault(sortBy, "order_date");
+
         Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+                ? Sort.by(dbColumn).ascending()
+                : Sort.by(dbColumn).descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
 

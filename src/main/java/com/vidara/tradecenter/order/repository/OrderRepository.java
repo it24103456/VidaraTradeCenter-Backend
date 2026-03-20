@@ -17,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    // ===== BASIC METHODS (for Dev 1 & Dev 2) =====
+    // ===== BASIC METHODS =====
 
     Optional<Order> findByOrderNumber(String orderNumber);
 
@@ -28,33 +28,39 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countByOrderStatus(OrderStatus status);
 
 
-    // ===== ADMIN METHODS (for Dev 3) =====
+    // ===== ADMIN: FILTERED LISTING (Native Query) =====
 
-    @Query(value = "SELECT o FROM Order o JOIN o.user u WHERE " +
-            "(:status IS NULL OR o.orderStatus = :status) AND " +
-            "(:paymentStatus IS NULL OR o.paymentStatus = :paymentStatus) AND " +
-            "(:search IS NULL OR LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-            "(:startDate IS NULL OR o.orderDate >= :startDate) AND " +
-            "(:endDate IS NULL OR o.orderDate <= :endDate)",
-            countQuery = "SELECT COUNT(o) FROM Order o JOIN o.user u WHERE " +
-                    "(:status IS NULL OR o.orderStatus = :status) AND " +
-                    "(:paymentStatus IS NULL OR o.paymentStatus = :paymentStatus) AND " +
-                    "(:search IS NULL OR LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-                    "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-                    "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-                    "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-                    "(:startDate IS NULL OR o.orderDate >= :startDate) AND " +
-                    "(:endDate IS NULL OR o.orderDate <= :endDate)")
+    @Query(value = "SELECT o.* FROM orders o INNER JOIN users u ON u.id = o.user_id WHERE " +
+            "(CAST(:status AS TEXT) IS NULL OR o.order_status = CAST(:status AS TEXT)) AND " +
+            "(CAST(:paymentStatus AS TEXT) IS NULL OR o.payment_status = CAST(:paymentStatus AS TEXT)) AND " +
+            "(CAST(:search AS TEXT) IS NULL OR " +
+            "LOWER(CAST(o.order_number AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+            "LOWER(CAST(u.first_name AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+            "LOWER(CAST(u.last_name AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+            "LOWER(CAST(u.email AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))) AND " +
+            "(CAST(:startDate AS TIMESTAMP) IS NULL OR o.order_date >= CAST(:startDate AS TIMESTAMP)) AND " +
+            "(CAST(:endDate AS TIMESTAMP) IS NULL OR o.order_date <= CAST(:endDate AS TIMESTAMP))",
+            countQuery = "SELECT COUNT(*) FROM orders o INNER JOIN users u ON u.id = o.user_id WHERE " +
+                    "(CAST(:status AS TEXT) IS NULL OR o.order_status = CAST(:status AS TEXT)) AND " +
+                    "(CAST(:paymentStatus AS TEXT) IS NULL OR o.payment_status = CAST(:paymentStatus AS TEXT)) AND " +
+                    "(CAST(:search AS TEXT) IS NULL OR " +
+                    "LOWER(CAST(o.order_number AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+                    "LOWER(CAST(u.first_name AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+                    "LOWER(CAST(u.last_name AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) OR " +
+                    "LOWER(CAST(u.email AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))) AND " +
+                    "(CAST(:startDate AS TIMESTAMP) IS NULL OR o.order_date >= CAST(:startDate AS TIMESTAMP)) AND " +
+                    "(CAST(:endDate AS TIMESTAMP) IS NULL OR o.order_date <= CAST(:endDate AS TIMESTAMP))",
+            nativeQuery = true)
     Page<Order> findOrdersWithFilters(
-            @Param("status") OrderStatus status,
-            @Param("paymentStatus") PaymentStatus paymentStatus,
+            @Param("status") String status,
+            @Param("paymentStatus") String paymentStatus,
             @Param("search") String search,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable);
+
+
+    // ===== ADMIN: STATISTICS =====
 
     long countByPaymentStatus(PaymentStatus status);
 

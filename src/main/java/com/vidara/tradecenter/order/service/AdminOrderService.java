@@ -45,12 +45,21 @@ public class AdminOrderService {
         logger.info("Admin fetching orders - status: {}, paymentStatus: {}, search: {}, page: {}",
                 status, paymentStatus, search, pageable.getPageNumber());
 
-        OrderStatus orderStatusEnum = parseOrderStatus(status);
-        PaymentStatus paymentStatusEnum = parsePaymentStatus(paymentStatus);
+        // Validate status values if provided
+        String statusStr = null;
+        if (status != null && !status.trim().isEmpty()) {
+            statusStr = parseOrderStatus(status).name();
+        }
+
+        String paymentStatusStr = null;
+        if (paymentStatus != null && !paymentStatus.trim().isEmpty()) {
+            paymentStatusStr = parsePaymentStatus(paymentStatus).name();
+        }
+
         String searchQuery = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
 
         Page<Order> orders = orderRepository.findOrdersWithFilters(
-                orderStatusEnum, paymentStatusEnum, searchQuery, startDate, endDate, pageable);
+                statusStr, paymentStatusStr, searchQuery, startDate, endDate, pageable);
 
         return orders.map(OrderListResponse::fromEntity);
     }
