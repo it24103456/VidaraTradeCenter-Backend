@@ -19,6 +19,10 @@ public class ProductDetailResponse {
     private String description;
     private BigDecimal weight;
     private String dimensions;
+    private Integer stock;
+    private Integer lowStockThreshold;
+    private boolean isLowStock;
+    private boolean isOutOfStock;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -28,7 +32,6 @@ public class ProductDetailResponse {
     private List<ImageResponse> images;
     private List<SpecificationResponse> specifications;
     private List<String> tags;
-
 
     // INNER CLASSES for nested responses
 
@@ -116,12 +119,10 @@ public class ProductDetailResponse {
         }
     }
 
-
     // CONSTRUCTORS
 
     public ProductDetailResponse() {
     }
-
 
     // GETTERS AND SETTERS
 
@@ -203,6 +204,38 @@ public class ProductDetailResponse {
 
     public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public Integer getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(Integer lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
+    }
+
+    public boolean isLowStock() {
+        return isLowStock;
+    }
+
+    public void setLowStock(boolean lowStock) {
+        isLowStock = lowStock;
+    }
+
+    public boolean isOutOfStock() {
+        return isOutOfStock;
+    }
+
+    public void setOutOfStock(boolean outOfStock) {
+        isOutOfStock = outOfStock;
     }
 
     public LocalDateTime getCreatedAt() {

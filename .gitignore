@@ -32,5 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
-dev properties
+### Documentation & Guides ###
+*.md
+!README.md
+!docs/**/*.md
+
+### Dev properties ###
 application-dev.properties
