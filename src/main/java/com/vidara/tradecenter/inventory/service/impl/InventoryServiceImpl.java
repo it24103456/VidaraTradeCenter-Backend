@@ -15,6 +15,7 @@ import com.vidara.tradecenter.user.model.User;
 import com.vidara.tradecenter.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,8 +114,7 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<LowStockProductResponse> getLowStockProducts() {
-    return productRepository.findAll().stream()
-        .filter(Product::isLowStock)
+    return productRepository.findLowStockProducts(Pageable.unpaged()).stream()
         .map(this::toLowStockProductResponse)
         .collect(Collectors.toList());
   }
@@ -122,8 +122,7 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<LowStockProductResponse> getOutOfStockProducts() {
-    return productRepository.findAll().stream()
-        .filter(Product::isOutOfStock)
+    return productRepository.findOutOfStockProducts(Pageable.unpaged()).stream()
         .map(this::toLowStockProductResponse)
         .collect(Collectors.toList());
   }
