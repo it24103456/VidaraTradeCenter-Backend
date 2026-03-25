@@ -3,6 +3,11 @@ package com.vidara.tradecenter.cart.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * Exception thrown when requested quantity exceeds available stock.
+ * Returns HTTP 400 BAD REQUEST status.
+ * Includes product details and stock information for client-side handling.
+ */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class InsufficientStockException extends RuntimeException {
 

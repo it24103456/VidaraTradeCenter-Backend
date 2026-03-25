@@ -91,7 +91,9 @@ public class CartServiceImpl implements CartService {
     CartItem cartItem = getCartItemById(cartItemId);
     verifyCartOwnership(cartItem, userId);
 
-    validateStockAvailability(cartItem.getProduct(), request.getQuantity());
+    // Refresh product data to get latest stock information
+    Product product = getProductById(cartItem.getProduct().getId());
+    validateStockAvailability(product, request.getQuantity());
 
     Integer oldQuantity = cartItem.getQuantity();
     cartItem.setQuantity(request.getQuantity());

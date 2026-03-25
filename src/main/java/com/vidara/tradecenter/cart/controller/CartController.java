@@ -15,6 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for shopping cart operations.
+ * Handles cart management including adding, updating, and removing items.
+ * All endpoints require authentication.
+ */
 @RestController
 @RequestMapping("/api/cart")
 @Tag(name = "Cart", description = "Shopping cart management APIs")

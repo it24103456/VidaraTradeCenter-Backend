@@ -9,6 +9,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Shopping cart entity representing a user's cart.
+ * Contains cart items and tracks cart status (ACTIVE, MERGED_TO_ORDER,
+ * ABANDONED).
+ * Each user can have one active cart at a time.
+ */
 @Entity
 @Table(name = "carts", indexes = {
     @Index(name = "idx_cart_user", columnList = "user_id"),
@@ -39,22 +45,42 @@ public class Cart extends BaseEntity {
 
   // HELPER METHODS
 
+  /**
+   * Adds an item to the cart and establishes bidirectional relationship.
+   *
+   * @param item the cart item to add
+   */
   public void addItem(CartItem item) {
     items.add(item);
     item.setCart(this);
   }
 
+  /**
+   * Removes an item from the cart and breaks bidirectional relationship.
+   *
+   * @param item the cart item to remove
+   */
   public void removeItem(CartItem item) {
     items.remove(item);
     item.setCart(null);
   }
 
+  /**
+   * Calculates the total amount of all items in the cart.
+   *
+   * @return total cart amount (sum of all item subtotals)
+   */
   public BigDecimal getTotalAmount() {
     return items.stream()
         .map(CartItem::getSubtotal)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
+  /**
+   * Calculates the total number of items in the cart.
+   *
+   * @return total quantity of all items
+   */
   public int getTotalItems() {
     return items.stream()
         .mapToInt(CartItem::getQuantity)

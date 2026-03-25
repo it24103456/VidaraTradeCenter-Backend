@@ -6,6 +6,12 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
+/**
+ * Cart item entity representing a product in a shopping cart.
+ * Stores product reference, quantity, and price snapshot at time of addition.
+ * Price snapshot allows tracking price changes between cart addition and
+ * checkout.
+ */
 @Entity
 @Table(name = "cart_items", indexes = {
     @Index(name = "idx_cart_item_cart", columnList = "cart_id"),
@@ -45,14 +51,30 @@ public class CartItem extends BaseEntity {
 
   // HELPER METHODS
 
+  /**
+   * Calculates the subtotal for this cart item (price × quantity).
+   *
+   * @return subtotal amount for this item
+   */
   public BigDecimal getSubtotal() {
     return price.multiply(BigDecimal.valueOf(quantity));
   }
 
+  /**
+   * Checks if the current price differs from the price at addition.
+   * Useful for alerting users about price changes.
+   *
+   * @return true if price has changed since addition
+   */
   public boolean hasPriceChanged() {
     return priceAtAddition != null && !price.equals(priceAtAddition);
   }
 
+  /**
+   * Calculates the price difference between current and original price.
+   *
+   * @return price difference (positive if increased, negative if decreased)
+   */
   public BigDecimal getPriceDifference() {
     if (priceAtAddition == null) {
       return BigDecimal.ZERO;
