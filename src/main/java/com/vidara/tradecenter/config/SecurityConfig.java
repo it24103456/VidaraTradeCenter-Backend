@@ -110,6 +110,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-resources/**").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
 
+                        // PayHere server-to-server payment notification (no JWT)
+                        .requestMatchers(HttpMethod.POST, "/api/payment/notify").permitAll()
+
                         // Health check
                         .requestMatchers("/actuator/**").permitAll()
 
