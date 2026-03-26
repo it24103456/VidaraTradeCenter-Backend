@@ -1,0 +1,20 @@
+package com.vidara.tradecenter.cart.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
+ * Exception thrown when a cart cannot be found.
+ * Returns HTTP 404 NOT FOUND status.
+ */
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class CartNotFoundException extends RuntimeException {
+
+  public CartNotFoundException(String message) {
+    super(message);
+  }
+
+  public CartNotFoundException(Long userId) {
+    super(String.format("Active cart not found for user ID: %d", userId));
+  }
+}

@@ -29,6 +29,14 @@ public class ProductMapper {
         product.setWeight(request.getWeight());
         product.setDimensions(request.getDimensions());
 
+        // Set stock fields
+        if (request.getStock() != null) {
+            product.setStock(request.getStock());
+        }
+        if (request.getLowStockThreshold() != null) {
+            product.setLowStockThreshold(request.getLowStockThreshold());
+        }
+
         if (request.getStatus() != null) {
             product.setStatus(ProductStatus.valueOf(request.getStatus().toUpperCase()));
         }
@@ -46,6 +54,8 @@ public class ProductMapper {
         response.setBasePrice(product.getBasePrice());
         response.setSalePrice(product.getSalePrice());
         response.setStatus(product.getStatus().name());
+        response.setStock(product.getStock());
+        response.setLowStockThreshold(product.getLowStockThreshold());
 
         // Primary image URL
         if (product.getImages() != null && !product.getImages().isEmpty()) {
@@ -54,8 +64,7 @@ public class ProductMapper {
                     .findFirst()
                     .ifPresentOrElse(
                             img -> response.setPrimaryImageUrl(img.getImageUrl()),
-                            () -> response.setPrimaryImageUrl(product.getImages().get(0).getImageUrl())
-                    );
+                            () -> response.setPrimaryImageUrl(product.getImages().get(0).getImageUrl()));
         }
 
         // Category name
@@ -84,6 +93,10 @@ public class ProductMapper {
         response.setDescription(product.getDescription());
         response.setWeight(product.getWeight());
         response.setDimensions(product.getDimensions());
+        response.setStock(product.getStock());
+        response.setLowStockThreshold(product.getLowStockThreshold());
+        response.setLowStock(product.isLowStock());
+        response.setOutOfStock(product.isOutOfStock());
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());
 
@@ -143,11 +156,18 @@ public class ProductMapper {
         product.setWeight(request.getWeight());
         product.setDimensions(request.getDimensions());
 
+        // Update stock fields
+        if (request.getStock() != null) {
+            product.setStock(request.getStock());
+        }
+        if (request.getLowStockThreshold() != null) {
+            product.setLowStockThreshold(request.getLowStockThreshold());
+        }
+
         if (request.getStatus() != null) {
             product.setStatus(ProductStatus.valueOf(request.getStatus().toUpperCase()));
         }
     }
-
 
     // PRIVATE HELPER METHODS
 

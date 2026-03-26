@@ -36,4 +36,28 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Product> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    // Find products with low stock (stock <= lowStockThreshold)
+    @Query("SELECT p FROM Product p WHERE p.stock IS NOT NULL AND p.lowStockThreshold IS NOT NULL " +
+            "AND p.stock > 0 AND p.stock <= p.lowStockThreshold")
+    Page<Product> findLowStockProducts(Pageable pageable);
+
+    // Find out of stock products (stock = 0 or null)
+    @Query("SELECT p FROM Product p WHERE p.stock IS NULL OR p.stock = 0")
+    Page<Product> findOutOfStockProducts(Pageable pageable);
+
+    // Find products by status and stock availability
+    @Query("SELECT p FROM Product p WHERE p.status = :status AND p.stock > :minStock")
+    Page<Product> findByStatusAndStockGreaterThan(@Param("status") ProductStatus status,
+            @Param("minStock") Integer minStock,
+            Pageable pageable);
+
+    // Count low stock products
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.stock IS NOT NULL AND p.lowStockThreshold IS NOT NULL " +
+            "AND p.stock > 0 AND p.stock <= p.lowStockThreshold")
+    Long countLowStockProducts();
+
+    // Count out of stock products
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.stock IS NULL OR p.stock = 0")
+    Long countOutOfStockProducts();
 }

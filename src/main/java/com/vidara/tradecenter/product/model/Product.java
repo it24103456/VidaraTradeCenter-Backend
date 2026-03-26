@@ -3,6 +3,7 @@ package com.vidara.tradecenter.product.model;
 import com.vidara.tradecenter.common.base.BaseEntity;
 import com.vidara.tradecenter.product.model.enums.ProductStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -47,8 +48,12 @@ public class Product extends BaseEntity {
     private String dimensions;
 
     @Column(name = "stock")
+    @Min(value = 0, message = "Stock cannot be negative")
     private Integer stock = 0;
 
+    @Column(name = "low_stock_threshold")
+    @Min(value = 0, message = "Low stock threshold cannot be negative")
+    private Integer lowStockThreshold = 10;
 
     // RELATIONSHIPS
 
@@ -73,13 +78,8 @@ public class Product extends BaseEntity {
 
     // Many-to-Many with Tag (owning side)
     @ManyToMany
-    @JoinTable(
-            name = "product_tags",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @JoinTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
-
 
     // CONSTRUCTORS
 
@@ -93,7 +93,6 @@ public class Product extends BaseEntity {
         this.basePrice = basePrice;
         this.status = ProductStatus.DRAFT;
     }
-
 
     // HELPER METHODS
 
@@ -124,7 +123,6 @@ public class Product extends BaseEntity {
     public void removeTag(Tag tag) {
         tags.remove(tag);
     }
-
 
     // GETTERS AND SETTERS
 
@@ -196,13 +194,36 @@ public class Product extends BaseEntity {
         return dimensions;
     }
 
-    public Integer getStock() { return stock; }
+    public Integer getStock() {
+        return stock;
+    }
 
     public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
     }
 
-    public void setStock(Integer stock) { this.stock = stock; }
+    public void setStock(Integer stock) {
+        if (stock != null && stock < 0) {
+            throw new IllegalArgumentException("Stock cannot be negative");
+        }
+        this.stock = stock;
+    }
+
+    public Integer getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(Integer lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
+    }
+
+    public boolean isLowStock() {
+        return stock != null && lowStockThreshold != null && stock <= lowStockThreshold;
+    }
+
+    public boolean isOutOfStock() {
+        return stock == null || stock == 0;
+    }
 
     public Category getCategory() {
         return category;

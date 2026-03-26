@@ -14,13 +14,13 @@ public class ProductResponse {
     private String categoryName;
     private String brandName;
     private String status;
-
+    private Integer stock;
+    private Integer lowStockThreshold;
 
     // CONSTRUCTORS
 
     public ProductResponse() {
     }
-
 
     // GETTERS AND SETTERS
 
@@ -102,5 +102,21 @@ public class ProductResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public Integer getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(Integer lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
     }
 }

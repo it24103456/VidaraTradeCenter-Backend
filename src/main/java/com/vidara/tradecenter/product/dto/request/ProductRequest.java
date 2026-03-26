@@ -3,6 +3,7 @@ package com.vidara.tradecenter.product.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -37,12 +38,17 @@ public class ProductRequest {
     @Size(max = 100, message = "Dimensions must be less than 100 characters")
     private String dimensions;
 
+    @Min(value = 0, message = "Stock cannot be negative")
+    private Integer stock;
+
+    @Min(value = 0, message = "Low stock threshold cannot be negative")
+    private Integer lowStockThreshold;
+
     private List<String> tags;
 
     private List<SpecificationEntry> specifications;
 
     private List<String> imageUrls;
-
 
     // INNER CLASS for specification key-value pairs
     public static class SpecificationEntry {
@@ -78,12 +84,10 @@ public class ProductRequest {
         }
     }
 
-
     // CONSTRUCTORS
 
     public ProductRequest() {
     }
-
 
     // GETTERS AND SETTERS
 
@@ -165,6 +169,22 @@ public class ProductRequest {
 
     public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public Integer getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(Integer lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
     }
 
     public List<String> getTags() {
