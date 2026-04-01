@@ -15,6 +15,7 @@ import com.vidara.tradecenter.order.model.enums.PaymentStatus;
 import com.vidara.tradecenter.order.repository.OrderRepository;
 import com.vidara.tradecenter.product.model.Product;
 import com.vidara.tradecenter.product.model.enums.ProductStatus;
+import com.vidara.tradecenter.product.repository.ProductRepository;
 import com.vidara.tradecenter.user.model.Address;
 import com.vidara.tradecenter.user.model.User;
 import com.vidara.tradecenter.user.repository.AddressRepository;
@@ -33,15 +34,18 @@ public class CheckoutService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
 
     public CheckoutService(CartRepository cartRepository,
-                           AddressRepository addressRepository,
-                           UserRepository userRepository,
-                           OrderRepository orderRepository) {
+            AddressRepository addressRepository,
+            UserRepository userRepository,
+            OrderRepository orderRepository,
+            ProductRepository productRepository) {
         this.cartRepository = cartRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -86,6 +90,10 @@ public class CheckoutService {
 
             OrderItem orderItem = new OrderItem(product, product.getName(), quantity, unitPrice, totalPrice);
             order.addItem(orderItem);
+
+            // Decrement stock
+            product.setStock(availableStock - quantity);
+            productRepository.save(product);
         }
 
         order.setSubtotal(subtotal);
@@ -97,8 +105,7 @@ public class CheckoutService {
                 shippingAddr.getStreet(),
                 shippingAddr.getCity(),
                 shippingAddr.getState() != null ? shippingAddr.getState() : "",
-                shippingAddr.getZipCode() != null ? shippingAddr.getZipCode() : ""
-        );
+                shippingAddr.getZipCode() != null ? shippingAddr.getZipCode() : "");
         shippingAddress.setCountry(shippingAddr.getCountry());
         order.setShippingDetails(shippingAddress);
 
