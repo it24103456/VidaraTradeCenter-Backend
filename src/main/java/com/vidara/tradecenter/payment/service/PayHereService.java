@@ -1,7 +1,6 @@
 package com.vidara.tradecenter.payment.service;
 
-import com.vidara.tradecenter.common.exception.BadRequestException;
-import com.vidara.tradecenter.common.exception.ResourceNotFoundException;
+import com.vidara.tradecenter.order.exception.OrderNotFoundException;
 import com.vidara.tradecenter.order.model.Order;
 import com.vidara.tradecenter.order.model.OrderItem;
 import com.vidara.tradecenter.order.model.enums.OrderStatus;
@@ -9,6 +8,8 @@ import com.vidara.tradecenter.order.model.enums.PaymentStatus;
 import com.vidara.tradecenter.order.repository.OrderRepository;
 import com.vidara.tradecenter.payment.config.PayHereProperties;
 import com.vidara.tradecenter.payment.dto.PaymentInitiateResponse;
+import com.vidara.tradecenter.payment.exception.PayHereException;
+import com.vidara.tradecenter.payment.exception.PaymentException;
 import com.vidara.tradecenter.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -39,13 +40,13 @@ public class PayHereService {
     @Transactional
     public PaymentInitiateResponse initiatePayment(Long userId, String orderNumber, String serverBaseUrl) {
         Order order = orderRepository.findByOrderNumber(orderNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderNumber", orderNumber));
+                .orElseThrow(() -> new OrderNotFoundException("orderNumber", orderNumber));
 
         if (!order.getUser().getId().equals(userId)) {
-            throw new BadRequestException("Order does not belong to this user");
+            throw new PaymentException("Order does not belong to this user", orderNumber);
         }
         if (order.getPaymentStatus() == PaymentStatus.COMPLETED) {
-            throw new BadRequestException("Payment already completed for this order");
+            throw new PaymentException("Payment already completed for this order", orderNumber);
         }
 
         User user = order.getUser();
@@ -127,18 +128,18 @@ public class PayHereService {
 
         if (!localSig.equals(md5sig)) {
             log.warn("PayHere MD5 signature mismatch for order_id={}", orderId);
-            throw new BadRequestException("Invalid payment signature");
+            throw new PayHereException("Invalid payment signature", orderId);
         }
 
         if (!props.getMerchantId().equals(merchantId)) {
             log.warn("Merchant ID mismatch: expected={}, received={}", props.getMerchantId(), merchantId);
-            throw new BadRequestException("Merchant ID mismatch");
+            throw new PayHereException("Merchant ID mismatch", orderId);
         }
 
         Order order = orderRepository.findByOrderNumber(orderId)
                 .orElseThrow(() -> {
                     log.warn("PayHere notification for unknown order: {}", orderId);
-                    return new ResourceNotFoundException("Order", "orderNumber", orderId);
+                    return new OrderNotFoundException("orderNumber", orderId);
                 });
 
         int code = Integer.parseInt(statusCode);

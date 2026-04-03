@@ -4,6 +4,9 @@ import com.vidara.tradecenter.cart.exception.CartNotFoundException;
 import com.vidara.tradecenter.cart.exception.InsufficientStockException;
 import com.vidara.tradecenter.inventory.exception.NegativeStockException;
 import com.vidara.tradecenter.inventory.exception.StockOperationException;
+import com.vidara.tradecenter.order.exception.OrderNotFoundException;
+import com.vidara.tradecenter.payment.exception.PayHereException;
+import com.vidara.tradecenter.payment.exception.PaymentException;
 import com.vidara.tradecenter.common.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +132,33 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StockOperationException.class)
     public ResponseEntity<ApiResponse<Void>> handleStockOperation(StockOperationException ex) {
         logger.error("Stock operation failed: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    // 404 — Order Not Found
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOrderNotFound(OrderNotFoundException ex) {
+        logger.error("Order not found: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    // 502 — PayHere Gateway Error (must be before PaymentException since it's a subclass)
+    @ExceptionHandler(PayHereException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePayHereException(PayHereException ex) {
+        logger.error("PayHere gateway error: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    // 400 — Payment Error
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentException(PaymentException ex) {
+        logger.error("Payment error: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
