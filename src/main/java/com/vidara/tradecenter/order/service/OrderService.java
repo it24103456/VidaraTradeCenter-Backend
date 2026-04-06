@@ -22,7 +22,7 @@ public interface OrderService {
             int page,
             int size);
 
-    OrderListResponse getOrderDetails(Long userId, Long orderId);
+    OrderResponse getOrderDetails(Long userId, Long orderId);
 
     OrderListResponse getOrderDetailsByOrderNumber(Long userId, String orderNumber);
 

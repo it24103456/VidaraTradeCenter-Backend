@@ -5,6 +5,7 @@ import com.vidara.tradecenter.common.dto.PagedResponse;
 import com.vidara.tradecenter.order.dto.OrderHistoryFilterRequest;
 import com.vidara.tradecenter.order.dto.OrderHistoryResponse;
 import com.vidara.tradecenter.order.dto.OrderListResponse;
+import com.vidara.tradecenter.order.dto.OrderResponse;
 import com.vidara.tradecenter.order.dto.OrderStatusResponse;
 import com.vidara.tradecenter.order.service.OrderService;
 import com.vidara.tradecenter.security.CurrentUser;
@@ -48,11 +49,11 @@ public class OrderController {
     }
 
     @GetMapping("/{id}/details")
-    public ResponseEntity<ApiResponse<OrderListResponse>> getOrderDetails(
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetails(
             @CurrentUser CustomUserDetails currentUser,
             @PathVariable("id") Long id) {
 
-        OrderListResponse response = orderService.getOrderDetails(currentUser.getId(), id);
+        OrderResponse response = orderService.getOrderDetails(currentUser.getId(), id);
         return ResponseEntity.ok(ApiResponse.success("Order details retrieved successfully", response));
     }
 

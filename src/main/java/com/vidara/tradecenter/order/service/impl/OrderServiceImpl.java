@@ -74,11 +74,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public OrderListResponse getOrderDetails(Long userId, Long orderId) {
+    public OrderResponse getOrderDetails(Long userId, Long orderId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
-        return OrderListResponse.fromEntityDetailed(order);
+        return OrderResponse.fromEntity(order);
     }
 
     @Override

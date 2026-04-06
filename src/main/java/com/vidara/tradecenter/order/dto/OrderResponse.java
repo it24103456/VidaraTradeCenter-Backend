@@ -1,7 +1,6 @@
 package com.vidara.tradecenter.order.dto;
 
 import com.vidara.tradecenter.order.model.Order;
-import com.vidara.tradecenter.order.model.OrderItem;
 import com.vidara.tradecenter.order.model.ShippingAddress;
 
 import java.math.BigDecimal;
@@ -26,80 +25,8 @@ public class OrderResponse {
     private String paymentStatus;
     private LocalDateTime orderDate;
 
-    private List<OrderItemDetail> items;
+    private List<OrderItemResponse> items;
     private ShippingDetail shippingAddress;
-
-    public static class OrderItemDetail {
-
-        private Long id;
-        private Long productId;
-        private String productName;
-        private Integer quantity;
-        private BigDecimal unitPrice;
-        private BigDecimal totalPrice;
-
-        public OrderItemDetail() {
-        }
-
-        public static OrderItemDetail fromEntity(OrderItem item) {
-            OrderItemDetail detail = new OrderItemDetail();
-            detail.setId(item.getId());
-            detail.setProductId(item.getProduct() != null ? item.getProduct().getId() : null);
-            detail.setProductName(item.getProductName());
-            detail.setQuantity(item.getQuantity());
-            detail.setUnitPrice(item.getUnitPrice());
-            detail.setTotalPrice(item.getTotalPrice());
-            return detail;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public Long getProductId() {
-            return productId;
-        }
-
-        public void setProductId(Long productId) {
-            this.productId = productId;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public void setProductName(String productName) {
-            this.productName = productName;
-        }
-
-        public Integer getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(Integer quantity) {
-            this.quantity = quantity;
-        }
-
-        public BigDecimal getUnitPrice() {
-            return unitPrice;
-        }
-
-        public void setUnitPrice(BigDecimal unitPrice) {
-            this.unitPrice = unitPrice;
-        }
-
-        public BigDecimal getTotalPrice() {
-            return totalPrice;
-        }
-
-        public void setTotalPrice(BigDecimal totalPrice) {
-            this.totalPrice = totalPrice;
-        }
-    }
 
     public static class ShippingDetail {
 
@@ -212,8 +139,8 @@ public class OrderResponse {
         response.setOrderDate(order.getOrderDate());
 
         if (order.getItems() != null) {
-            List<OrderItemDetail> itemDetails = order.getItems().stream()
-                    .map(OrderItemDetail::fromEntity)
+            List<OrderItemResponse> itemDetails = order.getItems().stream()
+                    .map(OrderItemResponse::fromEntity)
                     .toList();
             response.setItems(itemDetails);
         } else {
@@ -323,11 +250,11 @@ public class OrderResponse {
         this.orderDate = orderDate;
     }
 
-    public List<OrderItemDetail> getItems() {
+    public List<OrderItemResponse> getItems() {
         return items;
     }
 
-    public void setItems(List<OrderItemDetail> items) {
+    public void setItems(List<OrderItemResponse> items) {
         this.items = items;
     }
 
