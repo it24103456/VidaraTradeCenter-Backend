@@ -3,9 +3,11 @@ package com.vidara.tradecenter.order.controller;
 import com.vidara.tradecenter.common.dto.ApiResponse;
 import com.vidara.tradecenter.common.exception.BadRequestException;
 import com.vidara.tradecenter.common.exception.ResourceNotFoundException;
+import com.vidara.tradecenter.order.dto.DeliveryStatusResponse;
 import com.vidara.tradecenter.order.dto.OrderListResponse;
 import com.vidara.tradecenter.order.model.Order;
 import com.vidara.tradecenter.order.repository.OrderRepository;
+import com.vidara.tradecenter.order.service.DeliveryTrackingService;
 import com.vidara.tradecenter.security.CurrentUser;
 import com.vidara.tradecenter.security.CustomUserDetails;
 import jakarta.transaction.Transactional;
@@ -24,9 +26,12 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderRepository orderRepository;
+    private final DeliveryTrackingService deliveryTrackingService;  // ← NEW
 
-    public OrderController(OrderRepository orderRepository) {
+    public OrderController(OrderRepository orderRepository,
+                           DeliveryTrackingService deliveryTrackingService) {  // ← UPDATED
         this.orderRepository = orderRepository;
+        this.deliveryTrackingService = deliveryTrackingService;  // ← NEW
     }
 
     @GetMapping
@@ -68,5 +73,55 @@ public class OrderController {
 
         OrderListResponse response = OrderListResponse.fromEntityDetailed(order);
         return ResponseEntity.ok(ApiResponse.success("Order retrieved successfully", response));
+    }
+
+
+    // ===== NEW DELIVERY TRACKING ENDPOINTS =====
+
+    /**
+     * Get delivery status for an order by order number
+     * GET /api/orders/{orderNumber}/delivery-status
+     */
+    @GetMapping("/{orderNumber}/delivery-status")
+    public ResponseEntity<ApiResponse<DeliveryStatusResponse>> getDeliveryStatus(
+            @CurrentUser CustomUserDetails currentUser,
+            @PathVariable String orderNumber) {
+
+        DeliveryStatusResponse response = deliveryTrackingService.getDeliveryStatus(
+                currentUser.getId(), orderNumber);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Delivery status retrieved successfully", response));
+    }
+
+    /**
+     * Get delivery status for an order by order ID
+     * GET /api/orders/id/{orderId}/delivery-status
+     */
+    @GetMapping("/id/{orderId}/delivery-status")
+    public ResponseEntity<ApiResponse<DeliveryStatusResponse>> getDeliveryStatusById(
+            @CurrentUser CustomUserDetails currentUser,
+            @PathVariable Long orderId) {
+
+        DeliveryStatusResponse response = deliveryTrackingService.getDeliveryStatusByOrderId(
+                currentUser.getId(), orderId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Delivery status retrieved successfully", response));
+    }
+
+    /**
+     * Get all deliveries for current user
+     * GET /api/orders/my-deliveries
+     */
+    @GetMapping("/my-deliveries")
+    public ResponseEntity<ApiResponse<List<DeliveryStatusResponse>>> getMyDeliveries(
+            @CurrentUser CustomUserDetails currentUser) {
+
+        List<DeliveryStatusResponse> deliveries = deliveryTrackingService.getUserDeliveries(
+                currentUser.getId());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Deliveries retrieved successfully", deliveries));
     }
 }

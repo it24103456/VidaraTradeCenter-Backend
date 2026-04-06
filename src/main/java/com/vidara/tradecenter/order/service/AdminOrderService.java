@@ -16,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.vidara.tradecenter.order.dto.RefundRequest;
+import com.vidara.tradecenter.order.dto.RefundResponse;
+import com.vidara.tradecenter.user.model.User;
+import com.vidara.tradecenter.user.repository.UserRepository;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,9 +32,12 @@ public class AdminOrderService {
     private static final Logger logger = LoggerFactory.getLogger(AdminOrderService.class);
 
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;  // ← NEW
 
-    public AdminOrderService(OrderRepository orderRepository) {
+    public AdminOrderService(OrderRepository orderRepository,
+                             UserRepository userRepository) {  // ← UPDATED
         this.orderRepository = orderRepository;
+        this.userRepository = userRepository;  // ← NEW
     }
 
 
@@ -141,6 +149,87 @@ public class AdminOrderService {
                 todayOrders,
                 todayRevenue != null ? todayRevenue : BigDecimal.ZERO
         );
+    }
+
+
+    // ===== NEW REFUND METHODS =====
+
+    /**
+     * Process refund for an order
+     */
+    @Transactional
+    public RefundResponse processRefund(Long orderId, RefundRequest request, Long adminUserId) {
+        logger.info("Admin {} processing refund for order {}", adminUserId, orderId);
+
+        // Get the order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+
+        // Validate order can be refunded
+        if (!order.canRefund()) {
+            throw new BadRequestException(
+                    "Cannot refund order with status: " + order.getOrderStatus() +
+                            ". Order must be PAID, PROCESSING, or DELIVERED to refund.");
+        }
+
+        // Check if already refunded
+        if (order.getRefundDate() != null) {
+            throw new BadRequestException("Order has already been refunded on " + order.getRefundDate());
+        }
+
+        // Validate refund amount
+        BigDecimal refundAmount = request.getRefundAmount();
+        if (request.isFullRefund()) {
+            refundAmount = order.getTotalAmount();
+        }
+
+        if (refundAmount.compareTo(order.getTotalAmount()) > 0) {
+            throw new BadRequestException(
+                    "Refund amount (" + refundAmount + ") cannot exceed order total (" +
+                            order.getTotalAmount() + ")");
+        }
+
+        // Get admin user
+        User adminUser = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", adminUserId));
+
+        // Process the refund
+        order.setRefundAmount(refundAmount);
+        order.setRefundReason(request.getReason());
+        order.setRefundDate(LocalDateTime.now());
+        order.setRefundedBy(adminUser);
+        order.setOrderStatus(OrderStatus.REFUNDED);
+        order.setPaymentStatus(PaymentStatus.REFUNDED);
+
+        Order savedOrder = orderRepository.save(order);
+
+        logger.info("Refund processed for order {}: amount={}, reason={}",
+                orderId, refundAmount, request.getReason());
+
+        String adminName = adminUser.getFirstName() + " " + adminUser.getLastName();
+        return RefundResponse.success(savedOrder, adminName);
+    }
+
+
+    /**
+     * Get refund details for an order
+     */
+    @Transactional(readOnly = true)
+    public RefundResponse getRefundDetails(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+
+        if (order.getRefundDate() == null) {
+            return RefundResponse.failed(order.getOrderNumber(), "Order has not been refunded");
+        }
+
+        String adminName = "";
+        if (order.getRefundedBy() != null) {
+            adminName = order.getRefundedBy().getFirstName() + " " +
+                    order.getRefundedBy().getLastName();
+        }
+
+        return RefundResponse.success(order, adminName);
     }
 
 
