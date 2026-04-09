@@ -114,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus currentStatus = order.getOrderStatus();
         if (!currentStatus.canTransitionTo(newStatus)) {
             throw new BadRequestException(
-                    "Invalid status transition: " + currentStatus + " → " + newStatus);
+                    "Invalid status transition: " + currentStatus + " -> " + newStatus);
         }
     }
 }
