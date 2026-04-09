@@ -2,24 +2,26 @@ package com.vidara.tradecenter.order.service;
 
 import com.vidara.tradecenter.common.exception.BadRequestException;
 import com.vidara.tradecenter.common.exception.ResourceNotFoundException;
+import com.vidara.tradecenter.notification.dto.OrderStatusUpdateEmail;
+import com.vidara.tradecenter.notification.event.OrderStatusChangedEvent;
 import com.vidara.tradecenter.order.dto.OrderListResponse;
 import com.vidara.tradecenter.order.dto.OrderStatisticsResponse;
+import com.vidara.tradecenter.order.dto.RefundRequest;
+import com.vidara.tradecenter.order.dto.RefundResponse;
 import com.vidara.tradecenter.order.dto.UpdateOrderStatusRequest;
 import com.vidara.tradecenter.order.model.Order;
 import com.vidara.tradecenter.order.model.enums.OrderStatus;
 import com.vidara.tradecenter.order.model.enums.PaymentStatus;
 import com.vidara.tradecenter.order.repository.OrderRepository;
+import com.vidara.tradecenter.user.model.User;
+import com.vidara.tradecenter.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.vidara.tradecenter.order.dto.RefundRequest;
-import com.vidara.tradecenter.order.dto.RefundResponse;
-import com.vidara.tradecenter.user.model.User;
-import com.vidara.tradecenter.user.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,14 +34,16 @@ public class AdminOrderService {
     private static final Logger logger = LoggerFactory.getLogger(AdminOrderService.class);
 
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;  // ← NEW
+    private final ApplicationEventPublisher eventPublisher;
+    private final UserRepository userRepository;
 
     public AdminOrderService(OrderRepository orderRepository,
-                             UserRepository userRepository) {  // ← UPDATED
+                             ApplicationEventPublisher eventPublisher,
+                             UserRepository userRepository) {
         this.orderRepository = orderRepository;
-        this.userRepository = userRepository;  // ← NEW
+        this.eventPublisher = eventPublisher;
+        this.userRepository = userRepository;
     }
-
 
     @Transactional(readOnly = true)
     public Page<OrderListResponse> getAllOrders(
@@ -53,7 +57,6 @@ public class AdminOrderService {
         logger.info("Admin fetching orders - status: {}, paymentStatus: {}, search: {}, page: {}",
                 status, paymentStatus, search, pageable.getPageNumber());
 
-        // Validate status values if provided
         String statusStr = null;
         if (status != null && !status.trim().isEmpty()) {
             statusStr = parseOrderStatus(status).name();
@@ -72,7 +75,6 @@ public class AdminOrderService {
         return orders.map(OrderListResponse::fromEntity);
     }
 
-
     @Transactional(readOnly = true)
     public OrderListResponse getOrderById(Long orderId) {
         logger.info("Admin fetching order details for ID: {}", orderId);
@@ -82,7 +84,6 @@ public class AdminOrderService {
 
         return OrderListResponse.fromEntityDetailed(order);
     }
-
 
     @Transactional
     public OrderListResponse updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
@@ -115,17 +116,32 @@ public class AdminOrderService {
         Order savedOrder = orderRepository.save(order);
         logger.info("Order {} status updated: {} → {}", orderId, currentStatus, newStatus);
 
+        try {
+            OrderStatusUpdateEmail emailData = new OrderStatusUpdateEmail(
+                    savedOrder.getUser().getFullName(),
+                    savedOrder.getUser().getEmail(),
+                    savedOrder.getOrderNumber(),
+                    currentStatus.name(),
+                    newStatus.name());
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, emailData));
+            logger.info("Published OrderStatusChangedEvent for order {} ({} → {})",
+                    savedOrder.getOrderNumber(), currentStatus, newStatus);
+        } catch (Exception e) {
+            logger.warn("Failed to publish order status change event for order {}: {}",
+                    orderId, e.getMessage());
+        }
+
         return OrderListResponse.fromEntity(savedOrder);
     }
-
 
     @Transactional(readOnly = true)
     public OrderStatisticsResponse getStatistics() {
         logger.info("Admin fetching order statistics");
 
         long totalOrders = orderRepository.count();
-        BigDecimal grossRevenue = orderRepository.sumGrossRevenue();
-        BigDecimal totalRefunds = orderRepository.sumTotalRefunds();
+
+        BigDecimal grossRevenue = nz(orderRepository.sumGrossRevenue());
+        BigDecimal totalRefunds = nz(orderRepository.sumTotalRefunds());
         BigDecimal totalRevenue = grossRevenue.subtract(totalRefunds);
 
         long pending = orderRepository.countByOrderStatus(OrderStatus.PENDING);
@@ -137,13 +153,14 @@ public class AdminOrderService {
 
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         long todayOrders = orderRepository.countByOrderDateAfter(todayStart);
-        BigDecimal todayGrossRevenue = orderRepository.sumGrossRevenueAfter(todayStart);
-        BigDecimal todayRefunds = orderRepository.sumRefundsAfter(todayStart);
-        BigDecimal todayRevenue = todayGrossRevenue.subtract(todayRefunds);
+
+        BigDecimal todayGross = nz(orderRepository.sumGrossRevenueAfter(todayStart));
+        BigDecimal todayRefunds = nz(orderRepository.sumRefundsAfter(todayStart));
+        BigDecimal todayRevenue = todayGross.subtract(todayRefunds);
 
         return new OrderStatisticsResponse(
                 totalOrders,
-                totalRevenue != null ? totalRevenue : BigDecimal.ZERO,
+                totalRevenue,
                 pending,
                 paid,
                 processing,
@@ -151,37 +168,27 @@ public class AdminOrderService {
                 delivered,
                 cancelled,
                 todayOrders,
-                todayRevenue != null ? todayRevenue : BigDecimal.ZERO
+                todayRevenue
         );
     }
 
-
-    // ===== NEW REFUND METHODS =====
-
-    /**
-     * Process refund for an order
-     */
     @Transactional
     public RefundResponse processRefund(Long orderId, RefundRequest request, Long adminUserId) {
         logger.info("Admin {} processing refund for order {}", adminUserId, orderId);
 
-        // Get the order
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
-        // Validate order can be refunded
         if (!order.canRefund()) {
             throw new BadRequestException(
                     "Cannot refund order with status: " + order.getOrderStatus() +
                             ". Order must be PAID, PROCESSING, or DELIVERED to refund.");
         }
 
-        // Check if already refunded
         if (order.getRefundDate() != null) {
             throw new BadRequestException("Order has already been refunded on " + order.getRefundDate());
         }
 
-        // Validate refund amount
         BigDecimal refundAmount = request.getRefundAmount();
         if (request.isFullRefund()) {
             refundAmount = order.getTotalAmount();
@@ -193,11 +200,9 @@ public class AdminOrderService {
                             order.getTotalAmount() + ")");
         }
 
-        // Get admin user
         User adminUser = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", adminUserId));
 
-        // Process the refund
         order.setRefundAmount(refundAmount);
         order.setRefundReason(request.getReason());
         order.setRefundDate(LocalDateTime.now());
@@ -214,10 +219,6 @@ public class AdminOrderService {
         return RefundResponse.success(savedOrder, adminName);
     }
 
-
-    /**
-     * Get refund details for an order
-     */
     @Transactional(readOnly = true)
     public RefundResponse getRefundDetails(Long orderId) {
         Order order = orderRepository.findById(orderId)
@@ -236,6 +237,9 @@ public class AdminOrderService {
         return RefundResponse.success(order, adminName);
     }
 
+    private static BigDecimal nz(BigDecimal v) {
+        return v != null ? v : BigDecimal.ZERO;
+    }
 
     private OrderStatus parseOrderStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
