@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -71,4 +72,29 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     BigDecimal sumTotalAmountAfter(@Param("date") LocalDateTime date);
 
     long countByOrderDateAfter(LocalDateTime date);
+
+    // ===== REVENUE (NET) QUERIES =====
+
+    // Gross revenue = money collected (COMPLETED + later REFUNDED)
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o " +
+            "WHERE o.paymentStatus IN (" +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.COMPLETED, " +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.REFUNDED)")
+    BigDecimal sumGrossRevenue();
+
+    // Total refunded amount (supports partial refunds)
+    @Query("SELECT COALESCE(SUM(o.refundAmount), 0) FROM Order o WHERE o.refundDate IS NOT NULL")
+    BigDecimal sumTotalRefunds();
+
+    // Gross revenue after a date (for today revenue)
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o " +
+            "WHERE o.orderDate >= :date AND o.paymentStatus IN (" +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.COMPLETED, " +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.REFUNDED)")
+    BigDecimal sumGrossRevenueAfter(@Param("date") LocalDateTime date);
+
+    // Refunds after a date (for today refunds)
+    @Query("SELECT COALESCE(SUM(o.refundAmount), 0) FROM Order o WHERE o.refundDate >= :date")
+    BigDecimal sumRefundsAfter(@Param("date") LocalDateTime date);
+
 }
