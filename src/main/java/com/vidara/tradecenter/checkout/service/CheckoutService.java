@@ -8,6 +8,8 @@ import com.vidara.tradecenter.checkout.dto.CheckoutRequest;
 import com.vidara.tradecenter.checkout.dto.CheckoutResponse;
 import com.vidara.tradecenter.common.exception.BadRequestException;
 import com.vidara.tradecenter.common.exception.ResourceNotFoundException;
+import com.vidara.tradecenter.notification.dto.OrderConfirmationEmail;
+import com.vidara.tradecenter.notification.event.OrderConfirmedEvent;
 import com.vidara.tradecenter.order.model.Order;
 import com.vidara.tradecenter.order.model.OrderItem;
 import com.vidara.tradecenter.order.model.ShippingAddress;
@@ -21,31 +23,40 @@ import com.vidara.tradecenter.user.model.User;
 import com.vidara.tradecenter.user.repository.AddressRepository;
 import com.vidara.tradecenter.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class CheckoutService {
+
+    private static final Logger log = LoggerFactory.getLogger(CheckoutService.class);
 
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CheckoutService(CartRepository cartRepository,
             AddressRepository addressRepository,
             UserRepository userRepository,
             OrderRepository orderRepository,
-            ProductRepository productRepository) {
+            ProductRepository productRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.cartRepository = cartRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -114,10 +125,46 @@ public class CheckoutService {
         cart.setStatus(CartStatus.MERGED_TO_ORDER);
         cartRepository.save(cart);
 
+        publishOrderConfirmedEvent(saved, user, shippingAddress);
+
         CheckoutResponse response = new CheckoutResponse();
         response.setOrderNumber(saved.getOrderNumber());
         response.setTotalAmount(saved.getTotalAmount());
         return response;
+    }
+
+    private void publishOrderConfirmedEvent(Order order, User user, ShippingAddress addr) {
+        try {
+            OrderConfirmationEmail emailData = new OrderConfirmationEmail();
+            emailData.setCustomerName(user.getFullName());
+            emailData.setCustomerEmail(user.getEmail());
+            emailData.setOrderNumber(order.getOrderNumber());
+            emailData.setOrderDate(order.getOrderDate());
+            emailData.setSubtotal(order.getSubtotal());
+            emailData.setTax(order.getTax());
+            emailData.setShippingCost(order.getShippingCost());
+            emailData.setTotalAmount(order.getTotalAmount());
+
+            List<OrderConfirmationEmail.ItemDetail> itemDetails = order.getItems().stream()
+                    .map(item -> new OrderConfirmationEmail.ItemDetail(
+                            item.getProductName(), item.getQuantity(),
+                            item.getUnitPrice(), item.getTotalPrice()))
+                    .collect(Collectors.toList());
+            emailData.setItems(itemDetails);
+
+            String addressStr = addr.getFullName() + ", " + addr.getAddressLine1()
+                    + ", " + addr.getCity()
+                    + (addr.getState() != null && !addr.getState().isEmpty() ? ", " + addr.getState() : "")
+                    + (addr.getPostalCode() != null && !addr.getPostalCode().isEmpty() ? " " + addr.getPostalCode() : "")
+                    + ", " + addr.getCountry();
+            emailData.setShippingAddress(addressStr);
+
+            eventPublisher.publishEvent(new OrderConfirmedEvent(this, emailData));
+            log.info("Published OrderConfirmedEvent for order {}", order.getOrderNumber());
+        } catch (Exception e) {
+            log.error("Could not publish order confirmation email event for order {}: {}",
+                    order.getOrderNumber(), e.getMessage(), e);
+        }
     }
 
     private BigDecimal resolveUnitPrice(Product product) {

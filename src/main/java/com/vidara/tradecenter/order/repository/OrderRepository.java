@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -24,30 +25,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByOrderNumber(String orderNumber);
 
     Page<Order> findByUserIdOrderByOrderDateDesc(Long userId, Pageable pageable);
-    Page<Order> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-    Optional<Order> findByIdAndUserId(Long orderId, Long userId);
-    Page<Order> findByUserIdAndOrderStatus(Long userId, OrderStatus status, Pageable pageable);
-    // Story-name alias for team consistency; explicit JPQL avoids invalid derived query parsing.
-    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.orderStatus = :status")
-    Page<Order> findByUserIdAndStatus(
-            @Param("userId") Long userId,
-            @Param("status") OrderStatus status,
-            Pageable pageable);
 
     long countByOrderStatus(OrderStatus status);
-
-    @Query("SELECT o FROM Order o WHERE o.user.id = :userId " +
-            "AND (:status IS NULL OR o.orderStatus = :status) " +
-            "AND (:search IS NULL OR LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "AND (:startDate IS NULL OR o.orderDate >= :startDate) " +
-            "AND (:endDate IS NULL OR o.orderDate <= :endDate)")
-    Page<Order> findOrderHistoryWithFilters(
-            @Param("userId") Long userId,
-            @Param("status") OrderStatus status,
-            @Param("search") String search,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            Pageable pageable);
 
 
     // ===== ADMIN: FILTERED LISTING (Native Query) =====
@@ -93,4 +72,29 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     BigDecimal sumTotalAmountAfter(@Param("date") LocalDateTime date);
 
     long countByOrderDateAfter(LocalDateTime date);
+
+    // ===== REVENUE (NET) QUERIES =====
+
+    // Gross revenue = money collected (COMPLETED + later REFUNDED)
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o " +
+            "WHERE o.paymentStatus IN (" +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.COMPLETED, " +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.REFUNDED)")
+    BigDecimal sumGrossRevenue();
+
+    // Total refunded amount (supports partial refunds)
+    @Query("SELECT COALESCE(SUM(o.refundAmount), 0) FROM Order o WHERE o.refundDate IS NOT NULL")
+    BigDecimal sumTotalRefunds();
+
+    // Gross revenue after a date (for today revenue)
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o " +
+            "WHERE o.orderDate >= :date AND o.paymentStatus IN (" +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.COMPLETED, " +
+            " com.vidara.tradecenter.order.model.enums.PaymentStatus.REFUNDED)")
+    BigDecimal sumGrossRevenueAfter(@Param("date") LocalDateTime date);
+
+    // Refunds after a date (for today refunds)
+    @Query("SELECT COALESCE(SUM(o.refundAmount), 0) FROM Order o WHERE o.refundDate >= :date")
+    BigDecimal sumRefundsAfter(@Param("date") LocalDateTime date);
+
 }

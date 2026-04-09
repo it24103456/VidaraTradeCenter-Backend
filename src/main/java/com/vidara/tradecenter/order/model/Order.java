@@ -1,9 +1,9 @@
 package com.vidara.tradecenter.order.model;
-
 import com.vidara.tradecenter.common.base.BaseEntity;
 import com.vidara.tradecenter.order.model.enums.OrderStatus;
 import com.vidara.tradecenter.order.model.enums.PaymentStatus;
 import com.vidara.tradecenter.user.model.User;
+import com.vidara.tradecenter.order.model.DeliveryTracking;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -56,6 +56,22 @@ public class Order extends BaseEntity {
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
+    @Column(name = "refund_amount", precision = 10, scale = 2)
+    private BigDecimal refundAmount;
+
+    @Column(name = "refund_reason", length = 500)
+    private String refundReason;
+
+    @Column(name = "refund_date")
+    private LocalDateTime refundDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "refunded_by")
+    private User refundedBy;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private DeliveryTracking deliveryTracking;
+
 
     public Order() {
     }
@@ -77,6 +93,21 @@ public class Order extends BaseEntity {
     public void removeItem(OrderItem item) {
         items.remove(item);
         item.setOrder(null);
+    }
+
+    public boolean isRefunded() {
+        return this.orderStatus == OrderStatus.REFUNDED;
+    }
+
+    public boolean canRefund() {
+        return this.orderStatus.canRefund();
+    }
+
+    public void setDeliveryTracking(DeliveryTracking tracking) {
+        this.deliveryTracking = tracking;
+        if (tracking != null) {
+            tracking.setOrder(this);
+        }
     }
 
     public void setShippingDetails(ShippingAddress address) {
@@ -177,6 +208,42 @@ public class Order extends BaseEntity {
         this.orderDate = orderDate;
     }
 
+
+    public BigDecimal getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(BigDecimal refundAmount) {
+        this.refundAmount = refundAmount;
+    }
+
+    public String getRefundReason() {
+        return refundReason;
+    }
+
+    public void setRefundReason(String refundReason) {
+        this.refundReason = refundReason;
+    }
+
+    public LocalDateTime getRefundDate() {
+        return refundDate;
+    }
+
+    public void setRefundDate(LocalDateTime refundDate) {
+        this.refundDate = refundDate;
+    }
+
+    public User getRefundedBy() {
+        return refundedBy;
+    }
+
+    public void setRefundedBy(User refundedBy) {
+        this.refundedBy = refundedBy;
+    }
+
+    public DeliveryTracking getDeliveryTracking() {
+        return deliveryTracking;
+    }
 
     @Override
     public String toString() {

@@ -1,5 +1,6 @@
 package com.vidara.tradecenter.payment.service;
 
+import com.vidara.tradecenter.common.exception.BadRequestException;
 import com.vidara.tradecenter.order.exception.OrderNotFoundException;
 import com.vidara.tradecenter.order.model.Order;
 import com.vidara.tradecenter.order.model.OrderItem;
@@ -8,16 +9,19 @@ import com.vidara.tradecenter.order.model.enums.PaymentStatus;
 import com.vidara.tradecenter.order.repository.OrderRepository;
 import com.vidara.tradecenter.payment.config.PayHereProperties;
 import com.vidara.tradecenter.payment.dto.PaymentInitiateResponse;
-import com.vidara.tradecenter.payment.exception.PayHereException;
 import com.vidara.tradecenter.payment.exception.PaymentException;
+import com.vidara.tradecenter.payment.model.PayHereNotifyReceipt;
+import com.vidara.tradecenter.payment.repository.PayHereNotifyReceiptRepository;
 import com.vidara.tradecenter.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -31,10 +35,14 @@ public class PayHereService {
 
     private final PayHereProperties props;
     private final OrderRepository orderRepository;
+    private final PayHereNotifyReceiptRepository notifyReceiptRepository;
 
-    public PayHereService(PayHereProperties props, OrderRepository orderRepository) {
+    public PayHereService(PayHereProperties props,
+                          OrderRepository orderRepository,
+                          PayHereNotifyReceiptRepository notifyReceiptRepository) {
         this.props = props;
         this.orderRepository = orderRepository;
+        this.notifyReceiptRepository = notifyReceiptRepository;
     }
 
     @Transactional
@@ -51,7 +59,7 @@ public class PayHereService {
 
         User user = order.getUser();
         BigDecimal amount = order.getTotalAmount();
-        String formattedAmount = amount.setScale(2).toPlainString();
+        String formattedAmount = amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
 
         String hash = generateCheckoutHash(
                 props.getMerchantId(),
@@ -86,7 +94,7 @@ public class PayHereService {
         response.setOrderId(orderNumber);
         response.setItems(itemsSummary);
         response.setCurrency(CURRENCY);
-        response.setAmount(amount.setScale(2));
+        response.setAmount(amount.setScale(2, RoundingMode.HALF_UP));
         response.setHash(hash);
 
         response.setFirstName(user.getFirstName() != null ? user.getFirstName() : "");
@@ -108,32 +116,40 @@ public class PayHereService {
     public void handleNotification(HttpServletRequest request) {
         String merchantId = param(request, "merchant_id");
         String orderId = param(request, "order_id");
-        String paymentId = param(request, "payment_id");
+        String paymentId = param(request, "payment_id").trim();
         String payhereAmount = param(request, "payhere_amount");
         String payhereCurrency = param(request, "payhere_currency");
-        String statusCode = param(request, "status_code");
-        String md5sig = param(request, "md5sig");
+        String statusCodeRaw = param(request, "status_code");
+        String md5sig = param(request, "md5sig").trim();
 
         log.info("PayHere notification received — order_id={}, status_code={}, payment_id={}",
-                orderId, statusCode, paymentId);
+                orderId, statusCodeRaw, paymentId);
 
         String localSig = generateNotifyHash(
                 merchantId,
                 orderId,
                 payhereAmount,
                 payhereCurrency,
-                statusCode,
+                statusCodeRaw,
                 props.getMerchantSecret()
         );
 
-        if (!localSig.equals(md5sig)) {
-            log.warn("PayHere MD5 signature mismatch for order_id={}", orderId);
-            throw new PayHereException("Invalid payment signature", orderId);
+        if (!localSig.equalsIgnoreCase(md5sig)) {
+            log.warn("PayHere notify rejected (possible fraud): invalid MD5 signature for order_id={}", orderId);
+            throw new BadRequestException("Invalid payment signature");
         }
 
         if (!props.getMerchantId().equals(merchantId)) {
-            log.warn("Merchant ID mismatch: expected={}, received={}", props.getMerchantId(), merchantId);
-            throw new PayHereException("Merchant ID mismatch", orderId);
+            log.warn("PayHere notify rejected (possible fraud): merchant_id mismatch for order_id={}", orderId);
+            throw new BadRequestException("Merchant ID mismatch");
+        }
+
+        int code;
+        try {
+            code = Integer.parseInt(statusCodeRaw.trim());
+        } catch (NumberFormatException e) {
+            log.warn("PayHere notify rejected: invalid status_code '{}' for order_id={}", statusCodeRaw, orderId);
+            throw new BadRequestException("Invalid status_code");
         }
 
         Order order = orderRepository.findByOrderNumber(orderId)
@@ -142,7 +158,14 @@ public class PayHereService {
                     return new OrderNotFoundException("orderNumber", orderId);
                 });
 
-        int code = Integer.parseInt(statusCode);
+        verifyCurrency(payhereCurrency, orderId);
+        verifyAmount(payhereAmount, order, orderId);
+
+        if (isDuplicateNotification(paymentId, code, order)) {
+            log.info("PayHere duplicate notification ignored — order_id={}, payment_id={}, status_code={}",
+                    orderId, paymentId.isEmpty() ? "(empty)" : paymentId, code);
+            return;
+        }
 
         switch (code) {
             case 2 -> {
@@ -167,6 +190,63 @@ public class PayHereService {
         }
 
         orderRepository.save(order);
+
+        if (!paymentId.isEmpty()) {
+            try {
+                notifyReceiptRepository.save(new PayHereNotifyReceipt(orderId, paymentId, code));
+            } catch (DataIntegrityViolationException e) {
+                log.info("PayHere duplicate notification (race on payment_id): order_id={}, payment_id={}",
+                        orderId, paymentId);
+            }
+        }
+    }
+
+    private void verifyCurrency(String payhereCurrency, String orderId) {
+        if (payhereCurrency == null || payhereCurrency.isBlank()) {
+            log.warn("PayHere notify rejected: missing payhere_currency for order_id={}", orderId);
+            throw new BadRequestException("Missing payhere_currency");
+        }
+        if (!CURRENCY.equalsIgnoreCase(payhereCurrency.trim())) {
+            log.warn("PayHere notify rejected: currency mismatch for order_id={} (expected {}, got {})",
+                    orderId, CURRENCY, payhereCurrency);
+            throw new BadRequestException("Currency mismatch");
+        }
+    }
+
+    private void verifyAmount(String payhereAmount, Order order, String orderId) {
+        if (payhereAmount == null || payhereAmount.isBlank()) {
+            log.warn("PayHere notify rejected: missing payhere_amount for order_id={}", orderId);
+            throw new BadRequestException("Missing payhere_amount");
+        }
+        BigDecimal notified;
+        try {
+            notified = new BigDecimal(payhereAmount.trim()).setScale(2, RoundingMode.HALF_UP);
+        } catch (NumberFormatException e) {
+            log.warn("PayHere notify rejected: invalid payhere_amount '{}' for order_id={}", payhereAmount, orderId);
+            throw new BadRequestException("Invalid payhere_amount");
+        }
+        BigDecimal expected = order.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
+        if (expected.compareTo(notified) != 0) {
+            log.warn("PayHere notify rejected: amount mismatch for order_id={} (expected {}, got {})",
+                    orderId, expected, notified);
+            throw new BadRequestException("Payment amount mismatch");
+        }
+    }
+
+    /**
+     * Duplicate if we already stored this payment_id, or success (code 2) retried without payment_id
+     * while the order is already PAID/COMPLETED.
+     */
+    private boolean isDuplicateNotification(String paymentId, int code, Order order) {
+        if (!paymentId.isEmpty()) {
+            if (notifyReceiptRepository.existsByPaymentId(paymentId)) {
+                return true;
+            }
+            return false;
+        }
+        return code == 2
+                && order.getOrderStatus() == OrderStatus.PAID
+                && order.getPaymentStatus() == PaymentStatus.COMPLETED;
     }
 
     private String generateCheckoutHash(String merchantId, String orderId,

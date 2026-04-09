@@ -1,0 +1,558 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #eef2f7;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="background-color: #eef2f7; padding: 50px 20px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+            style="
+              background-color: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  padding: 45px 30px;
+                  text-align: center;
+                "
+              >
+                <p
+                  style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    letter-spacing: 3px;
+                    margin: 0 0 12px 0;
+                    font-weight: 600;
+                  "
+                >
+                  Order Confirmed
+                </p>
+                <h1
+                  style="
+                    color: #ffffff;
+                    margin: 0;
+                    font-size: 30px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                  "
+                >
+                  Vidara Trade Center
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Success icon -->
+            <tr>
+              <td style="text-align: center; padding: 30px 30px 0 30px">
+                <p style="font-size: 48px; margin: 0">&#9989;</p>
+              </td>
+            </tr>
+
+            <!-- Greeting -->
+            <tr>
+              <td style="padding: 20px 40px 10px 40px">
+                <h2
+                  style="
+                    color: #2d3748;
+                    margin: 0 0 8px 0;
+                    font-size: 24px;
+                    font-weight: 700;
+                    text-align: center;
+                  "
+                >
+                  Thank you,
+                  <span th:text="${customerName}" style="color: #667eea"
+                    >Customer</span
+                  >!
+                </h2>
+                <p
+                  style="
+                    color: #718096;
+                    font-size: 15px;
+                    line-height: 1.7;
+                    margin: 0 0 10px 0;
+                    text-align: center;
+                  "
+                >
+                  Your order has been placed successfully. Here are your order
+                  details.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Order number & date -->
+            <tr>
+              <td style="padding: 0 40px 20px 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td
+                      style="
+                        background-color: #f7f8fc;
+                        border-radius: 12px;
+                        padding: 18px 20px;
+                      "
+                    >
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellspacing="0"
+                        cellpadding="0"
+                      >
+                        <tr>
+                          <td>
+                            <p
+                              style="
+                                color: #a0aec0;
+                                font-size: 12px;
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                                margin: 0 0 4px 0;
+                              "
+                            >
+                              Order Number
+                            </p>
+                            <p
+                              style="
+                                color: #667eea;
+                                font-size: 18px;
+                                font-weight: 700;
+                                margin: 0;
+                              "
+                              th:text="${orderNumber}"
+                            >
+                              OD123456
+                            </p>
+                          </td>
+                          <td style="text-align: right">
+                            <p
+                              style="
+                                color: #a0aec0;
+                                font-size: 12px;
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                                margin: 0 0 4px 0;
+                              "
+                            >
+                              Order Date
+                            </p>
+                            <p
+                              style="
+                                color: #2d3748;
+                                font-size: 14px;
+                                font-weight: 600;
+                                margin: 0;
+                              "
+                              th:text="${#temporals.format(orderDate, 'dd MMM yyyy, hh:mm a')}"
+                            >
+                              01 Jan 2026
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Items table -->
+            <tr>
+              <td style="padding: 0 40px 10px 40px">
+                <p
+                  style="
+                    color: #2d3748;
+                    font-size: 15px;
+                    font-weight: 700;
+                    margin: 0 0 12px 0;
+                  "
+                >
+                  Items Ordered
+                </p>
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  style="border-collapse: collapse"
+                >
+                  <tr
+                    style="
+                      background-color: #f7f8fc;
+                      border-bottom: 2px solid #e2e8f0;
+                    "
+                  >
+                    <td
+                      style="
+                        padding: 10px 12px;
+                        font-size: 11px;
+                        color: #a0aec0;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                      "
+                    >
+                      Product
+                    </td>
+                    <td
+                      style="
+                        padding: 10px 12px;
+                        font-size: 11px;
+                        color: #a0aec0;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                        text-align: center;
+                      "
+                    >
+                      Qty
+                    </td>
+                    <td
+                      style="
+                        padding: 10px 12px;
+                        font-size: 11px;
+                        color: #a0aec0;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                    >
+                      Price
+                    </td>
+                    <td
+                      style="
+                        padding: 10px 12px;
+                        font-size: 11px;
+                        color: #a0aec0;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                    >
+                      Total
+                    </td>
+                  </tr>
+                  <tr
+                    th:each="item : ${items}"
+                    style="border-bottom: 1px solid #edf2f7"
+                  >
+                    <td
+                      style="
+                        padding: 12px;
+                        font-size: 14px;
+                        color: #2d3748;
+                        font-weight: 600;
+                      "
+                      th:text="${item.productName}"
+                    >
+                      Product Name
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        font-size: 14px;
+                        color: #718096;
+                        text-align: center;
+                      "
+                      th:text="${item.quantity}"
+                    >
+                      1
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        font-size: 14px;
+                        color: #718096;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(item.unitPrice, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        font-size: 14px;
+                        color: #2d3748;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(item.totalPrice, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Totals -->
+            <tr>
+              <td style="padding: 10px 40px 10px 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #718096;
+                      "
+                    >
+                      Subtotal
+                    </td>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #2d3748;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(subtotal, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #718096;
+                      "
+                    >
+                      Tax
+                    </td>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #2d3748;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(tax, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #718096;
+                      "
+                    >
+                      Shipping
+                    </td>
+                    <td
+                      style="
+                        padding: 6px 0;
+                        font-size: 14px;
+                        color: #2d3748;
+                        font-weight: 600;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(shippingCost, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding: 8px 0 0 0">
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellspacing="0"
+                        cellpadding="0"
+                      >
+                        <tr>
+                          <td
+                            style="border-top: 2px solid #e2e8f0; padding: 0"
+                          ></td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 10px 0;
+                        font-size: 18px;
+                        color: #2d3748;
+                        font-weight: 700;
+                      "
+                    >
+                      Total
+                    </td>
+                    <td
+                      style="
+                        padding: 10px 0;
+                        font-size: 18px;
+                        color: #667eea;
+                        font-weight: 700;
+                        text-align: right;
+                      "
+                      th:text="'LKR ' + ${#numbers.formatDecimal(totalAmount, 1, 2)}"
+                    >
+                      LKR 0.00
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Shipping address -->
+            <tr th:if="${shippingAddress != null}">
+              <td style="padding: 10px 40px 20px 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td
+                      style="
+                        background-color: #f7f8fc;
+                        border-radius: 12px;
+                        padding: 18px 20px;
+                      "
+                    >
+                      <p
+                        style="
+                          color: #a0aec0;
+                          font-size: 12px;
+                          text-transform: uppercase;
+                          letter-spacing: 1px;
+                          margin: 0 0 8px 0;
+                          font-weight: 600;
+                        "
+                      >
+                        Shipping To
+                      </p>
+                      <p
+                        style="
+                          color: #2d3748;
+                          font-size: 14px;
+                          line-height: 1.6;
+                          margin: 0;
+                        "
+                        th:text="${shippingAddress}"
+                      >
+                        Address line
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Closing message -->
+            <tr>
+              <td style="padding: 10px 40px 35px 40px; text-align: center">
+                <p
+                  style="
+                    color: #a0aec0;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    margin: 0;
+                  "
+                >
+                  We'll notify you when your order status changes. If you have
+                  any questions, just reply to this email.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Divider -->
+            <tr>
+              <td style="padding: 0 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td style="border-top: 1px solid #e2e8f0"></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 25px 40px 30px 40px; text-align: center">
+                <p style="color: #cbd5e0; font-size: 12px; margin: 0 0 6px 0">
+                  &copy; 2026 Vidara Trade Center &middot; All rights reserved
+                </p>
+                <p style="color: #cbd5e0; font-size: 11px; margin: 0">
+                  You received this email because you placed an order on Vidara
+                  Trade Center.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Below-card -->
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+          >
+            <tr>
+              <td style="padding: 24px 30px; text-align: center">
+                <p style="color: #a0aec0; font-size: 12px; margin: 0">
+                  Made with &#10084;&#65039; in Sri Lanka
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

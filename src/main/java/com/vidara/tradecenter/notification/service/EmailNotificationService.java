@@ -1,0 +1,11 @@
+package com.vidara.tradecenter.notification.service;
+
+import com.vidara.tradecenter.notification.dto.OrderConfirmationEmail;
+import com.vidara.tradecenter.notification.dto.OrderStatusUpdateEmail;
+
+public interface EmailNotificationService {
+
+    void sendOrderConfirmation(OrderConfirmationEmail emailData);
+
+    void sendOrderStatusUpdate(OrderStatusUpdateEmail emailData);
+}
