@@ -43,7 +43,9 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public boolean checkStockAvailability(Long productId, Integer quantity) {
+    // Checks whether the requested quantity is available for the given product.
     logger.debug("Checking stock availability for product ID {}: requested quantity {}", productId, quantity);
+
     Product product = getProductById(productId);
     boolean available = product.getStock() != null && product.getStock() >= quantity;
 
@@ -57,7 +59,11 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public void reduceStock(Long productId, Integer quantity, String reason) {
+    // Reduces stock when an order is placed.
+    // Ensures enough stock is available before deduction
+    // and records the stock movement for tracking.
     logger.info("Reducing stock for product ID {}: quantity {}, reason: {}", productId, quantity, reason);
+
     Product product = getProductById(productId);
     Integer currentStock = getCurrentStock(product);
 
@@ -73,7 +79,10 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public void restoreStock(Long productId, Integer quantity, String reason) {
+    // Restores stock when an order is cancelled or reversed.
+    // Increases stock and records the adjustment for audit history.
     logger.info("Restoring stock for product ID {}: quantity {}, reason: {}", productId, quantity, reason);
+
     Product product = getProductById(productId);
     Integer currentStock = getCurrentStock(product);
     Integer newStock = currentStock + quantity;
@@ -88,6 +97,10 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public StockAdjustmentResponse adjustStock(StockAdjustmentRequest request, Long userId) {
+    // Handles manual stock adjustments by admin users.
+    // Calculates the updated stock using the adjustment amount,
+    // validates that stock does not become negative,
+    // then saves both the stock update and adjustment history.
     Product product = getProductById(request.getProductId());
     User user = getUserById(userId);
 
@@ -111,6 +124,8 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   public void recordStockAdjustment(Long productId, Integer quantityChange,
       StockAdjustmentType type, String reason, Long userId) {
+    // Records a stock change directly using product ID, quantity change,
+    // adjustment type, reason, and optional user information.
     Product product = getProductById(productId);
     Integer currentStock = getCurrentStock(product);
     Integer newStock = currentStock + quantityChange;
@@ -124,10 +139,14 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<LowStockProductResponse> getLowStockProducts() {
+    // Retrieves products with stock at or below the configured threshold.
+    // Used by admins to identify items that need restocking soon.
     logger.debug("Fetching low stock products");
+
     List<LowStockProductResponse> products = productRepository.findLowStockProducts(Pageable.unpaged()).stream()
         .map(this::toLowStockProductResponse)
         .collect(Collectors.toList());
+
     logger.info("Found {} low stock products", products.size());
     return products;
   }
@@ -135,10 +154,13 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<LowStockProductResponse> getOutOfStockProducts() {
+    // Retrieves products that are completely out of stock.
     logger.debug("Fetching out of stock products");
+
     List<LowStockProductResponse> products = productRepository.findOutOfStockProducts(Pageable.unpaged()).stream()
         .map(this::toLowStockProductResponse)
         .collect(Collectors.toList());
+
     logger.info("Found {} out of stock products", products.size());
     return products;
   }
@@ -146,43 +168,58 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<StockAdjustmentResponse> getStockHistory(Long productId) {
+    // Returns stock adjustment history for a product,
+    // ordered from most recent to oldest.
     logger.debug("Fetching stock adjustment history for product ID {}", productId);
+
     List<StockAdjustmentResponse> history = stockAdjustmentRepository.findByProductIdOrderByCreatedAtDesc(productId)
         .stream()
         .map(this::toStockAdjustmentResponse)
         .collect(Collectors.toList());
+
     logger.info("Retrieved {} stock adjustment records for product ID {}", history.size(), productId);
     return history;
   }
 
+  // =========================
   // PRIVATE HELPER METHODS
+  // =========================
 
   private Product getProductById(Long productId) {
+    // Finds a product by ID or throws an exception if not found.
     return productRepository.findById(productId)
         .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
   }
 
   private User getUserById(Long userId) {
+    // Finds a user by ID or throws an exception if not found.
     return userRepository.findById(userId)
         .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
   }
 
   private Integer getCurrentStock(Product product) {
+    // Returns the current stock value.
+    // Defaults to 0 if the product stock is null.
     return product.getStock() != null ? product.getStock() : 0;
   }
 
   private void updateProductStock(Product product, Integer newStock) {
+    // Updates the product stock in the database with the new value.
     product.setStock(newStock);
     productRepository.save(product);
   }
 
   private void validateSufficientStock(Product product, Integer currentStock, Integer requestedQuantity) {
+    // Validates that enough stock exists before reducing it.
+    // Throws an exception if the requested quantity exceeds available stock.
     if (currentStock < requestedQuantity) {
       throw new InsufficientStockException(product.getName(), requestedQuantity, currentStock);
     }
   }
 
   private void validateNonNegativeStock(Integer stock) {
+    // Ensures that stock does not become negative after adjustment.
+    // Throws an exception if the resulting stock is invalid.
     if (stock < 0) {
       throw new IllegalArgumentException("Stock update would result in negative inventory");
     }
@@ -191,15 +228,22 @@ public class InventoryServiceImpl implements InventoryService {
   private StockAdjustment recordAdjustment(Product product, Integer quantityChange,
       Integer stockBefore, Integer stockAfter,
       StockAdjustmentType type, String reason, User user) {
+    // Creates and saves a stock adjustment record.
+    // Stores before/after stock values, adjustment type,
+    // reason, and the user who performed the action.
     StockAdjustment adjustment = new StockAdjustment(product, quantityChange,
         stockBefore, stockAfter, type, reason);
+
     if (user != null) {
       adjustment.setAdjustedBy(user);
     }
+
     return stockAdjustmentRepository.save(adjustment);
   }
 
   private StockAdjustmentResponse toStockAdjustmentResponse(StockAdjustment adjustment) {
+    // Converts a StockAdjustment entity into a response DTO
+    // for API responses and history views.
     StockAdjustmentResponse response = new StockAdjustmentResponse();
     response.setId(adjustment.getId());
     response.setProductId(adjustment.getProduct().getId());
@@ -220,6 +264,8 @@ public class InventoryServiceImpl implements InventoryService {
   }
 
   private LowStockProductResponse toLowStockProductResponse(Product product) {
+    // Converts a Product entity into a low-stock response DTO
+    // for admin inventory monitoring.
     return new LowStockProductResponse(
         product.getId(),
         product.getName(),
@@ -231,6 +277,8 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public void bulkReduceStock(List<Long> productIds, List<Integer> quantities, String reason) {
+    // Reduces stock for multiple products in one operation.
+    // Tracks how many updates succeeded or failed for logging.
     if (productIds.size() != quantities.size()) {
       throw new IllegalArgumentException("Product IDs and quantities lists must have the same size");
     }
@@ -258,6 +306,8 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public void bulkRestoreStock(List<Long> productIds, List<Integer> quantities, String reason) {
+    // Restores stock for multiple products in bulk.
+    // Useful for batch cancellations or inventory corrections.
     if (productIds.size() != quantities.size()) {
       throw new IllegalArgumentException("Product IDs and quantities lists must have the same size");
     }
@@ -286,6 +336,8 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public boolean checkBulkStockAvailability(List<Long> productIds, List<Integer> quantities) {
+    // Checks stock availability for multiple products at once.
+    // Returns false immediately if any product does not have enough stock.
     if (productIds.size() != quantities.size()) {
       throw new IllegalArgumentException("Product IDs and quantities lists must have the same size");
     }
