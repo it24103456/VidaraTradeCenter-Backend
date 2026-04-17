@@ -184,7 +184,7 @@ public class InventoryServiceImpl implements InventoryService {
 
   private void validateNonNegativeStock(Integer stock) {
     if (stock < 0) {
-      throw new IllegalArgumentException("Stock cannot be negative after adjustment");
+      throw new IllegalArgumentException("Stock update would result in negative inventory");
     }
   }
 
