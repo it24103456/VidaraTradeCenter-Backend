@@ -2,6 +2,7 @@ package com.vidara.tradecenter.support.model;
 
 import com.vidara.tradecenter.common.base.BaseEntity;
 import com.vidara.tradecenter.support.model.enums.TicketCategory;
+import com.vidara.tradecenter.support.model.enums.TicketPriority;
 import com.vidara.tradecenter.support.model.enums.TicketStatus;
 import com.vidara.tradecenter.user.model.User;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ public class SupportTicket extends BaseEntity {
     private String subject;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false, length = 20)
+    @Column(name = "category", nullable = false, length = 30)
     private TicketCategory category;
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
@@ -26,6 +27,10 @@ public class SupportTicket extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private TicketStatus status = TicketStatus.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority", nullable = false, length = 20)
+    private TicketPriority priority = TicketPriority.MEDIUM;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -43,6 +48,7 @@ public class SupportTicket extends BaseEntity {
         this.description = description;
         this.user = user;
         this.status = TicketStatus.OPEN;
+        this.priority = TicketPriority.MEDIUM;
     }
 
 
@@ -80,11 +86,35 @@ public class SupportTicket extends BaseEntity {
         this.status = status;
     }
 
+    public TicketPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TicketPriority priority) {
+        this.priority = priority;
+    }
+
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+
+    // TOSTRING
+
+    @Override
+    public String toString() {
+        return "SupportTicket{" +
+                "id=" + getId() +
+                ", subject='" + subject + '\'' +
+                ", category=" + category +
+                ", status=" + status +
+                ", priority=" + priority +
+                ", userId=" + (user != null ? user.getId() : null) +
+                ", createdAt=" + getCreatedAt() +
+                '}';
     }
 }
