@@ -8,4 +8,6 @@ public interface EmailNotificationService {
     void sendOrderConfirmation(OrderConfirmationEmail emailData);
 
     void sendOrderStatusUpdate(OrderStatusUpdateEmail emailData);
+
+    void sendTicketConfirmation(String toEmail, String ticketId, String subject);
 }
