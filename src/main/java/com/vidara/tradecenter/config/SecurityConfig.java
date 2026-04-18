@@ -140,6 +140,9 @@ public class SecurityConfig {
 
                         // ====== AUTHENTICATED ENDPOINTS ===============
 
+                        // Support tickets (authenticated users only)
+                        .requestMatchers("/api/support/**").authenticated()
+
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )
