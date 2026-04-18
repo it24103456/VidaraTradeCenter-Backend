@@ -1,4 +1,4 @@
-package com.vidara.tradecenter.support.dto;
+package com.vidara.tradecenter.support.dto.response;
 
 import com.vidara.tradecenter.support.model.SupportTicket;
 import com.vidara.tradecenter.support.model.enums.TicketCategory;
@@ -7,64 +7,65 @@ import com.vidara.tradecenter.support.model.enums.TicketStatus;
 
 import java.time.LocalDateTime;
 
-public class SupportTicketResponse {
+public class TicketResponse {
 
-    private Long id;
+    private Long ticketId;
     private String subject;
     private TicketCategory category;
-    private String description;
     private TicketStatus status;
     private TicketPriority priority;
-    private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private long messageCount;
+    private String lastMessage;
 
 
     // CONSTRUCTORS
 
-    public SupportTicketResponse() {
+    public TicketResponse() {
     }
 
-    public SupportTicketResponse(Long id, String subject, TicketCategory category,
-                                  String description, TicketStatus status, TicketPriority priority,
-                                  Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
+    public TicketResponse(Long ticketId, String subject, TicketCategory category,
+                          TicketStatus status, TicketPriority priority,
+                          LocalDateTime createdAt, LocalDateTime updatedAt,
+                          long messageCount, String lastMessage) {
+        this.ticketId = ticketId;
         this.subject = subject;
         this.category = category;
-        this.description = description;
         this.status = status;
         this.priority = priority;
-        this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.messageCount = messageCount;
+        this.lastMessage = lastMessage;
     }
 
 
     // STATIC FACTORY METHOD
 
-    public static SupportTicketResponse fromEntity(SupportTicket ticket) {
-        return new SupportTicketResponse(
+    public static TicketResponse fromEntity(SupportTicket ticket, long messageCount, String lastMessage) {
+        return new TicketResponse(
                 ticket.getId(),
                 ticket.getSubject(),
                 ticket.getCategory(),
-                ticket.getDescription(),
                 ticket.getStatus(),
                 ticket.getPriority(),
-                ticket.getUser().getId(),
                 ticket.getCreatedAt(),
-                ticket.getUpdatedAt()
+                ticket.getUpdatedAt(),
+                messageCount,
+                lastMessage
         );
     }
 
 
     // GETTERS AND SETTERS
 
-    public Long getId() {
-        return id;
+    public Long getTicketId() {
+        return ticketId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTicketId(Long ticketId) {
+        this.ticketId = ticketId;
     }
 
     public String getSubject() {
@@ -83,14 +84,6 @@ public class SupportTicketResponse {
         this.category = category;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public TicketStatus getStatus() {
         return status;
     }
@@ -107,14 +100,6 @@ public class SupportTicketResponse {
         this.priority = priority;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -129,5 +114,21 @@ public class SupportTicketResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public long getMessageCount() {
+        return messageCount;
+    }
+
+    public void setMessageCount(long messageCount) {
+        this.messageCount = messageCount;
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
     }
 }
