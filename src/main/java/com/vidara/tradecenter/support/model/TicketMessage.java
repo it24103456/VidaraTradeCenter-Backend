@@ -102,5 +102,4 @@ public class TicketMessage {
     public void setSentAt(LocalDateTime sentAt) {
         this.sentAt = sentAt;
     }
-
 }
