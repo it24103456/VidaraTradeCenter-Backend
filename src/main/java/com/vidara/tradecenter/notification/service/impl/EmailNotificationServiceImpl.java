@@ -108,4 +108,22 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
             default -> "Your order status has been updated to " + status + ".";
         };
     }
+
+    @Override
+    public void sendTicketConfirmation(String toEmail, String ticketId, String subject) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("ticketId", ticketId);
+            ctx.setVariable("subject", subject);
+
+            String html = templateEngine.process("email/ticket-confirmation", ctx);
+            sendHtmlEmail(toEmail,
+                    "Support Ticket Received - #" + ticketId, html);
+
+            log.info("Ticket confirmation email sent to {} for ticket #{}", toEmail, ticketId);
+        } catch (Exception e) {
+            log.error("Failed to send ticket confirmation email for ticket #{}: {}",
+                    ticketId, e.getMessage(), e);
+        }
+    }
 }

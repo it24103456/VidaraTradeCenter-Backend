@@ -1,12 +1,14 @@
 package com.vidara.tradecenter.support.dto;
 
 import com.vidara.tradecenter.support.model.enums.TicketCategory;
+import com.vidara.tradecenter.support.model.enums.TicketPriority;
 
 public class SupportTicketRequest {
 
     private String subject;
     private TicketCategory category;
     private String description;
+    private TicketPriority priority;
 
 
     // CONSTRUCTORS
@@ -45,5 +47,13 @@ public class SupportTicketRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public TicketPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TicketPriority priority) {
+        this.priority = priority;
     }
 }
