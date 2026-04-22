@@ -10,4 +10,6 @@ public interface EmailNotificationService {
     void sendOrderStatusUpdate(OrderStatusUpdateEmail emailData);
 
     void sendTicketConfirmation(String toEmail, String ticketId, String subject);
+
+    void sendTicketReply(String toEmail, String ticketId, String adminMessage);
 }
