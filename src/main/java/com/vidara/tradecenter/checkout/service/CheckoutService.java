@@ -217,15 +217,17 @@ public class CheckoutService {
      * Called when PayHere server notify reports successful payment ({@code status_code=2}).
      */
     public void publishOrderConfirmationAfterSuccessfulPayment(Order order) {
+        String on = order.getOrderNumber();
         if (order.getShippingAddress() == null) {
-            log.warn("Skipping order confirmation email: no shipping address on order {}", order.getOrderNumber());
+            log.warn("[ORDER_MAIL] SKIP order={} reason=no shipping address on order entity", on);
             return;
         }
         User user = order.getUser();
         if (user == null) {
-            log.warn("Skipping order confirmation email: no user on order {}", order.getOrderNumber());
+            log.warn("[ORDER_MAIL] SKIP order={} reason=no user on order entity", on);
             return;
         }
+        log.info("[ORDER_MAIL] START pipeline order={} recipientEmail={}", on, user.getEmail());
         publishOrderConfirmedEvent(order, user, order.getShippingAddress());
     }
 
@@ -256,9 +258,10 @@ public class CheckoutService {
             emailData.setShippingAddress(addressStr);
 
             eventPublisher.publishEvent(new OrderConfirmedEvent(this, emailData));
-            log.info("Published OrderConfirmedEvent for order {}", order.getOrderNumber());
+            log.info("[ORDER_MAIL] Event published order={} Spring will send SMTP async to {}",
+                    order.getOrderNumber(), user.getEmail());
         } catch (Exception e) {
-            log.error("Could not publish order confirmation email event for order {}: {}",
+            log.error("[ORDER_MAIL] FAILED to publish OrderConfirmedEvent order={}: {}",
                     order.getOrderNumber(), e.getMessage(), e);
         }
     }

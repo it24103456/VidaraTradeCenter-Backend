@@ -21,12 +21,15 @@ public class OrderEventListener {
     @Async
     @EventListener
     public void handleOrderConfirmed(OrderConfirmedEvent event) {
-        log.info("Received OrderConfirmedEvent for order {}", event.getEmailData().getOrderNumber());
+        var data = event.getEmailData();
+        log.info("[ORDER_MAIL] Async handler: sending SMTP order={} to={}",
+                data.getOrderNumber(), data.getCustomerEmail());
         try {
-            emailNotificationService.sendOrderConfirmation(event.getEmailData());
+            emailNotificationService.sendOrderConfirmation(data);
+            log.info("[ORDER_MAIL] Async handler finished (no exception) order={}", data.getOrderNumber());
         } catch (Exception e) {
-            log.error("Error handling OrderConfirmedEvent for order {}: {}",
-                    event.getEmailData().getOrderNumber(), e.getMessage(), e);
+            log.error("[ORDER_MAIL] Async handler exception order={}: {}",
+                    data.getOrderNumber(), e.getMessage(), e);
         }
     }
 

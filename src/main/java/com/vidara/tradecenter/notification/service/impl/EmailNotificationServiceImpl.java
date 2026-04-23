@@ -50,11 +50,11 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
             sendHtmlEmail(emailData.getCustomerEmail(),
                     "Order Confirmation - " + emailData.getOrderNumber(), html);
 
-            log.info("Order confirmation email sent to {} for order {}",
-                    emailData.getCustomerEmail(), emailData.getOrderNumber());
+            log.info("[ORDER_MAIL] SUCCESS confirmation sent order={} to={}",
+                    emailData.getOrderNumber(), emailData.getCustomerEmail());
         } catch (Exception e) {
-            log.error("Failed to send order confirmation email for order {}: {}",
-                    emailData.getOrderNumber(), e.getMessage(), e);
+            log.error("[ORDER_MAIL] SMTP FAILED confirmation order={} to={} error={}",
+                    emailData.getOrderNumber(), emailData.getCustomerEmail(), e.getMessage(), e);
         }
     }
 

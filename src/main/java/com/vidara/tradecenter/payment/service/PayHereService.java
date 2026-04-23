@@ -74,12 +74,14 @@ public class PayHereService {
             throw new PaymentException("Order does not belong to this user", orderNumber);
         }
         if (order.getPaymentStatus() != PaymentStatus.PENDING) {
-            log.debug("Sandbox order reconcile skipped — {} already {}", orderNumber, order.getPaymentStatus());
+            log.info("[ORDER_MAIL] Sandbox reconcile skipped order={} paymentStatus={} (no email trigger; already finalized)",
+                    orderNumber, order.getPaymentStatus());
             return;
         }
         order.setPaymentStatus(PaymentStatus.COMPLETED);
         order.setOrderStatus(OrderStatus.PAID);
         orderRepository.save(order);
+        log.info("[ORDER_MAIL] Sandbox reconcile marking PAID order={} then running confirmation pipeline", orderNumber);
         checkoutService.publishOrderConfirmationAfterSuccessfulPayment(order);
         log.warn(
                 "SANDBOX: Order {} marked paid via client callback (send confirmation email). Disable payhere.order-sandbox-reconcile-enabled for live.",
@@ -308,6 +310,7 @@ public class PayHereService {
         boolean newlyPaid = code == 2
                 && (paymentStatusBefore != PaymentStatus.COMPLETED || orderStatusBefore != OrderStatus.PAID);
         if (newlyPaid) {
+            log.info("[ORDER_MAIL] PayHere notify: newly paid order={} triggering confirmation pipeline", orderId);
             checkoutService.publishOrderConfirmationAfterSuccessfulPayment(order);
         }
     }
