@@ -119,6 +119,14 @@ public class SecurityConfig {
                         // PayHere server-to-server payment notification (no JWT)
                         .requestMatchers(HttpMethod.POST, "/api/payment/notify").permitAll()
 
+                        // Public contact form (sends email to support inbox)
+                        .requestMatchers(HttpMethod.POST, "/api/contact/inquiry").permitAll()
+
+                        // Product reviews: read public; write requires login
+                        .requestMatchers(HttpMethod.GET, "/api/products/*/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/*/reviews/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/products/*/reviews").authenticated()
+
                         // Health check
                         .requestMatchers("/actuator/**").permitAll()
 
