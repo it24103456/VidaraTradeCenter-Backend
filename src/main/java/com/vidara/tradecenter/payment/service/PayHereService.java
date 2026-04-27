@@ -17,7 +17,7 @@ import com.vidara.tradecenter.payment.model.PayHereNotifyReceipt;
 import com.vidara.tradecenter.payment.repository.PayHereNotifyReceiptRepository;
 import com.vidara.tradecenter.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;

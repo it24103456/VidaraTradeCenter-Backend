@@ -25,7 +25,7 @@ import com.vidara.tradecenter.user.model.Address;
 import com.vidara.tradecenter.user.model.User;
 import com.vidara.tradecenter.user.repository.AddressRepository;
 import com.vidara.tradecenter.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.transaction.Transactional.TxType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
