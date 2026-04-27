@@ -1,0 +1,250 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Ticket Reply</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #eef2f7;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="background-color: #eef2f7; padding: 50px 20px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+            style="
+              background-color: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  padding: 45px 30px;
+                  text-align: center;
+                "
+              >
+                <p
+                  style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    letter-spacing: 3px;
+                    margin: 0 0 12px 0;
+                    font-weight: 600;
+                  "
+                >
+                  New Reply on Your Ticket
+                </p>
+                <h1
+                  style="
+                    color: #ffffff;
+                    margin: 0;
+                    font-size: 30px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                  "
+                >
+                  Vidara Trade Center
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Icon -->
+            <tr>
+              <td style="text-align: center; padding: 30px 30px 0 30px">
+                <p style="font-size: 48px; margin: 0">&#128172;</p>
+              </td>
+            </tr>
+
+            <!-- Greeting -->
+            <tr>
+              <td style="padding: 20px 40px 10px 40px">
+                <h2
+                  style="
+                    color: #2d3748;
+                    margin: 0 0 8px 0;
+                    font-size: 24px;
+                    font-weight: 700;
+                    text-align: center;
+                  "
+                >
+                  You have a new reply!
+                </h2>
+                <p
+                  style="
+                    color: #718096;
+                    font-size: 15px;
+                    line-height: 1.7;
+                    margin: 0 0 10px 0;
+                    text-align: center;
+                  "
+                >
+                  Our support team has responded to your ticket
+                  <strong th:text="'#' + ${ticketId}">#12345</strong>.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Admin Reply Content -->
+            <tr>
+              <td style="padding: 10px 40px 20px 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td
+                      style="
+                        background-color: #f7f8fc;
+                        border-radius: 12px;
+                        padding: 24px;
+                        border-left: 4px solid #667eea;
+                      "
+                    >
+                      <p
+                        style="
+                          color: #667eea;
+                          font-size: 12px;
+                          text-transform: uppercase;
+                          letter-spacing: 1px;
+                          margin: 0 0 10px 0;
+                          font-weight: 700;
+                        "
+                      >
+                        Admin Reply
+                      </p>
+                      <p
+                        style="
+                          color: #2d3748;
+                          font-size: 15px;
+                          line-height: 1.7;
+                          margin: 0;
+                          white-space: pre-wrap;
+                        "
+                        th:text="${adminMessage}"
+                      >
+                        Thank you for reaching out. We have looked into your
+                        issue and...
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- CTA Button -->
+            <tr>
+              <td style="padding: 10px 40px 20px 40px; text-align: center">
+                <a
+                  href="http://localhost:3000/support/tickets"
+                  style="
+                    display: inline-block;
+                    background: linear-gradient(
+                      135deg,
+                      #667eea 0%,
+                      #764ba2 100%
+                    );
+                    color: #ffffff;
+                    text-decoration: none;
+                    padding: 14px 36px;
+                    border-radius: 10px;
+                    font-size: 15px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                  "
+                >
+                  View Your Ticket
+                </a>
+              </td>
+            </tr>
+
+            <!-- Closing Message -->
+            <tr>
+              <td style="padding: 10px 40px 35px 40px; text-align: center">
+                <p
+                  style="
+                    color: #a0aec0;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    margin: 0;
+                  "
+                >
+                  You can reply to this ticket or add more details by logging
+                  in to your account and visiting the My Tickets section.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Divider -->
+            <tr>
+              <td style="padding: 0 40px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                >
+                  <tr>
+                    <td style="border-top: 1px solid #e2e8f0"></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 25px 40px 30px 40px; text-align: center">
+                <p style="color: #cbd5e0; font-size: 12px; margin: 0 0 6px 0">
+                  &copy; 2026 Vidara Trade Center &middot; All rights reserved
+                </p>
+                <p style="color: #cbd5e0; font-size: 11px; margin: 0">
+                  You received this email because you have an active support
+                  ticket on Vidara Trade Center.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Below-card -->
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+          >
+            <tr>
+              <td style="padding: 24px 30px; text-align: center">
+                <p style="color: #a0aec0; font-size: 12px; margin: 0">
+                  Made with &#10084;&#65039; in Sri Lanka
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
