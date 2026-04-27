@@ -38,9 +38,7 @@ public class AuthServiceImpl implements AuthService {
         private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
         private static final long PASSWORD_RESET_TOKEN_EXPIRY_MS = 3600000; // 1 hour
 
-        @Value("${payhere.frontend-url:http://localhost:3000}")
-        private String frontendUrl;
-
+        private final String frontendUrl;
         private final UserRepository userRepository;
         private final RoleRepository roleRepository;
         private final PasswordEncoder passwordEncoder;
@@ -55,7 +53,8 @@ public class AuthServiceImpl implements AuthService {
                         JwtTokenProvider jwtTokenProvider,
                         AuthenticationManager authenticationManager,
                         AuthMapper authMapper,
-                        EmailNotificationService emailNotificationService) {
+                        EmailNotificationService emailNotificationService,
+                        @Value("${payhere.frontend-url:http://localhost:3000}") String frontendUrl) {
                 this.userRepository = userRepository;
                 this.roleRepository = roleRepository;
                 this.passwordEncoder = passwordEncoder;
@@ -63,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
                 this.authenticationManager = authenticationManager;
                 this.authMapper = authMapper;
                 this.emailNotificationService = emailNotificationService;
+                this.frontendUrl = frontendUrl;
         }
 
         // REGISTER
@@ -154,7 +154,7 @@ public class AuthServiceImpl implements AuthService {
         // FORGOT PASSWORD
 
         @Override
-        @Transactional
+        @Transactional(readOnly = false)
         public void sendForgotPasswordEmail(String email) {
                 User user = userRepository.findByEmail(email)
                         .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
@@ -189,7 +189,7 @@ public class AuthServiceImpl implements AuthService {
         // RESET PASSWORD
 
         @Override
-        @Transactional
+        @Transactional(readOnly = false)
         public void resetPassword(ResetPasswordRequest request) {
                 // Validate passwords match
                 if (!request.getNewPassword().equals(request.getConfirmPassword())) {
