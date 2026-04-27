@@ -20,6 +20,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Check if email exists (for registration)
     boolean existsByEmail(String email);
 
+    // Find by password reset token (for password reset)
+    Optional<User> findByPasswordResetToken(String passwordResetToken);
+
     // Find by status
     Page<User> findByStatus(UserStatus status, Pageable pageable);
 

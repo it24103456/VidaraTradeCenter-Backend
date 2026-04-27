@@ -2,6 +2,7 @@ package com.vidara.tradecenter.auth.service.impl;
 
 import com.vidara.tradecenter.auth.dto.request.LoginRequest;
 import com.vidara.tradecenter.auth.dto.request.RegisterRequest;
+import com.vidara.tradecenter.auth.dto.request.ResetPasswordRequest;
 import com.vidara.tradecenter.auth.dto.response.AuthResponse;
 import com.vidara.tradecenter.auth.dto.response.UserResponse;
 import com.vidara.tradecenter.auth.mapper.AuthMapper;
@@ -9,6 +10,8 @@ import com.vidara.tradecenter.auth.service.AuthService;
 import com.vidara.tradecenter.common.exception.DuplicateResourceException;
 import com.vidara.tradecenter.common.exception.ResourceNotFoundException;
 import com.vidara.tradecenter.common.exception.UnauthorizedException;
+import com.vidara.tradecenter.notification.dto.PasswordResetEmail;
+import com.vidara.tradecenter.notification.service.EmailNotificationService;
 import com.vidara.tradecenter.security.jwt.JwtTokenProvider;
 import com.vidara.tradecenter.user.model.Role;
 import com.vidara.tradecenter.user.model.User;
@@ -17,6 +20,7 @@ import com.vidara.tradecenter.user.repository.RoleRepository;
 import com.vidara.tradecenter.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,12 +29,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
         private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+        private static final long PASSWORD_RESET_TOKEN_EXPIRY_MS = 3600000; // 1 hour
+
+        @Value("${payhere.frontend-url:http://localhost:3000}")
+        private String frontendUrl;
 
         private final UserRepository userRepository;
         private final RoleRepository roleRepository;
@@ -38,19 +47,22 @@ public class AuthServiceImpl implements AuthService {
         private final JwtTokenProvider jwtTokenProvider;
         private final AuthenticationManager authenticationManager;
         private final AuthMapper authMapper;
+        private final EmailNotificationService emailNotificationService;
 
         public AuthServiceImpl(UserRepository userRepository,
                         RoleRepository roleRepository,
                         PasswordEncoder passwordEncoder,
                         JwtTokenProvider jwtTokenProvider,
                         AuthenticationManager authenticationManager,
-                        AuthMapper authMapper) {
+                        AuthMapper authMapper,
+                        EmailNotificationService emailNotificationService) {
                 this.userRepository = userRepository;
                 this.roleRepository = roleRepository;
                 this.passwordEncoder = passwordEncoder;
                 this.jwtTokenProvider = jwtTokenProvider;
                 this.authenticationManager = authenticationManager;
                 this.authMapper = authMapper;
+                this.emailNotificationService = emailNotificationService;
         }
 
         // REGISTER
@@ -137,5 +149,77 @@ public class AuthServiceImpl implements AuthService {
                 response.setCreatedAt(user.getCreatedAt());
 
                 return response;
+        }
+
+        // FORGOT PASSWORD
+
+        @Override
+        @Transactional
+        public void sendForgotPasswordEmail(String email) {
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+                // Generate reset token
+                String resetToken = UUID.randomUUID().toString();
+                long expiryTime = System.currentTimeMillis() + PASSWORD_RESET_TOKEN_EXPIRY_MS;
+
+                // Save token to user
+                user.setPasswordResetToken(resetToken);
+                user.setPasswordResetTokenExpiry(expiryTime);
+                userRepository.save(user);
+
+                // Build reset link
+                String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+
+                // Send email
+                PasswordResetEmail emailData = new PasswordResetEmail();
+                emailData.setCustomerEmail(user.getEmail());
+                emailData.setCustomerName(user.getFirstName());
+                emailData.setResetLink(resetLink);
+
+                try {
+                        emailNotificationService.sendPasswordResetEmail(emailData);
+                        logger.info("Password reset email sent to: {}", email);
+                } catch (Exception e) {
+                        logger.error("Failed to send password reset email to: {}", email, e);
+                        throw new RuntimeException("Failed to send password reset email", e);
+                }
+        }
+
+        // RESET PASSWORD
+
+        @Override
+        @Transactional
+        public void resetPassword(ResetPasswordRequest request) {
+                // Validate passwords match
+                if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                        throw new UnauthorizedException("Passwords do not match");
+                }
+
+                // Find user by token
+                User user = userRepository.findByPasswordResetToken(request.getToken())
+                        .orElseThrow(() -> new ResourceNotFoundException("Password reset token", "token", request.getToken()));
+
+                // Check if token is expired
+                if (user.getPasswordResetTokenExpiry() == null || System.currentTimeMillis() > user.getPasswordResetTokenExpiry()) {
+                        throw new UnauthorizedException("Password reset token has expired");
+                }
+
+                // Update password
+                user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                user.setPasswordResetToken(null);
+                user.setPasswordResetTokenExpiry(null);
+                userRepository.save(user);
+
+                logger.info("Password reset successfully for user: {}", user.getEmail());
+        }
+
+        // VERIFY RESET TOKEN
+
+        @Override
+        public boolean isResetTokenValid(String token) {
+                return userRepository.findByPasswordResetToken(token)
+                        .map(user -> user.getPasswordResetTokenExpiry() != null && System.currentTimeMillis() <= user.getPasswordResetTokenExpiry())
+                        .orElse(false);
         }
 }

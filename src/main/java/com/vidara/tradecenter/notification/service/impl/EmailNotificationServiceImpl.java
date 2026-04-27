@@ -3,6 +3,7 @@ package com.vidara.tradecenter.notification.service.impl;
 import com.vidara.tradecenter.notification.config.EmailConfig;
 import com.vidara.tradecenter.notification.dto.OrderConfirmationEmail;
 import com.vidara.tradecenter.notification.dto.OrderStatusUpdateEmail;
+import com.vidara.tradecenter.notification.dto.PasswordResetEmail;
 import com.vidara.tradecenter.notification.service.EmailNotificationService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -147,6 +148,24 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
         } catch (Exception e) {
             log.error("Failed to send ticket reply email for ticket #{}: {}",
                     ticketId, e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendPasswordResetEmail(PasswordResetEmail emailData) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("customerName", emailData.getCustomerName());
+            ctx.setVariable("resetLink", emailData.getResetLink());
+
+            String html = templateEngine.process("email/password-reset", ctx);
+            sendHtmlEmail(emailData.getCustomerEmail(),
+                    "Password Reset Request - Vidara Trade Center", html);
+
+            log.info("[PASSWORD_RESET] SUCCESS email sent to={}", emailData.getCustomerEmail());
+        } catch (Exception e) {
+            log.error("[PASSWORD_RESET] SMTP FAILED to={} error={}", emailData.getCustomerEmail(), e.getMessage(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
         }
     }
 }
