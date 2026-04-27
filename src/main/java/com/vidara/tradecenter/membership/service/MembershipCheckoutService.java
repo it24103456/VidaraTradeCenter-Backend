@@ -54,7 +54,7 @@ public class MembershipCheckoutService {
         return orderId != null && orderId.startsWith(ORDER_PREFIX);
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public MembershipCheckoutResponse createCheckout(Long userId, SubscribeMembershipRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -80,7 +80,7 @@ public class MembershipCheckoutService {
         return r;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public MembershipPaymentIntent loadForPaymentInitiate(Long userId, String orderNumber) {
         MembershipPaymentIntent intent = intentRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Membership checkout", "orderNumber", orderNumber));
@@ -97,7 +97,7 @@ public class MembershipCheckoutService {
      * Sandbox-only escape hatch when PayHere cannot reach {@code notify_url} (e.g. localhost).
      * Live payments must rely on the server notify callback; keep this disabled in production.
      */
-    @Transactional
+    @Transactional(readOnly = false)
     public void reconcileSandboxMembershipIfPending(Long userId, String orderNumber) {
         if (!payHereProperties.isSandbox() || !payHereProperties.isMembershipSandboxReconcileEnabled()) {
             throw new BadRequestException(
@@ -138,7 +138,7 @@ public class MembershipCheckoutService {
         return raw;
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public void handlePayHereNotification(
             String orderId,
             String paymentId,

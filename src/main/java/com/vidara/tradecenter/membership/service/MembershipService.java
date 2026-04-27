@@ -111,7 +111,7 @@ public class MembershipService {
     /**
      * Activates or replaces the user's membership after a successful PayHere payment (upgrade / downgrade / new).
      */
-    @Transactional
+    @Transactional(readOnly = false)
     public void activatePaidSubscription(Long userId, MembershipPlan plan, MembershipBillingPeriod billingPeriod) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -131,7 +131,7 @@ public class MembershipService {
         userMembershipRepository.save(m);
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public MembershipMeResponse cancel(Long userId) {
         userMembershipRepository.findByUserIdAndStatus(userId, MembershipRecordStatus.ACTIVE)
                 .ifPresent(existing -> {

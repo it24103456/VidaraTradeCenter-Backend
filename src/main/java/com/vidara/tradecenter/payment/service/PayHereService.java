@@ -58,7 +58,7 @@ public class PayHereService {
      * Sandbox-only: customer finished PayHere in the browser — mark order paid and send confirmation email
      * (for local dev when server notify is unreachable).
      */
-    @Transactional
+    @Transactional(readOnly = false)
     public void reconcileSandboxOrderIfPending(Long userId, String orderNumber) {
         if (!props.isSandbox() || !props.isOrderSandboxReconcileEnabled()) {
             throw new BadRequestException(
@@ -88,7 +88,7 @@ public class PayHereService {
                 orderNumber);
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public PaymentInitiateResponse initiatePayment(Long userId, String orderNumber, String serverBaseUrl) {
         if (MembershipCheckoutService.isMembershipOrderId(orderNumber)) {
             return initiateMembershipPayment(userId, orderNumber, serverBaseUrl);
@@ -211,7 +211,7 @@ public class PayHereService {
         return notifyUrl;
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public void handleNotification(HttpServletRequest request) {
         String merchantId = param(request, "merchant_id");
         String orderId = param(request, "order_id");

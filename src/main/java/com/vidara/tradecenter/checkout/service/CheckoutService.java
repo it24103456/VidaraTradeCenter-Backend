@@ -67,7 +67,7 @@ public class CheckoutService {
         this.membershipService = membershipService;
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public CheckoutResponse placeOrder(Long userId, CheckoutRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
