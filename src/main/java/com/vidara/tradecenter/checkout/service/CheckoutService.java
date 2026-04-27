@@ -26,6 +26,7 @@ import com.vidara.tradecenter.user.model.User;
 import com.vidara.tradecenter.user.repository.AddressRepository;
 import com.vidara.tradecenter.user.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import jakarta.transaction.Transactional.TxType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +150,7 @@ public class CheckoutService {
      * Stock is decremented; order confirmation notification is published like normal checkout.
      * Uses a new transaction so each renewal commits even when batch processing subscriptions.
      */
-    @Transactional(TxType.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false)
     public CheckoutResponse placeSingleItemOrder(Long userId, Long productId, int quantity,
             Long shippingAddressId, BigDecimal unitPrice) {
         if (quantity < 1) {
